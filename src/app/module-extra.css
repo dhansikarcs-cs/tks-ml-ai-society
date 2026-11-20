@@ -312,3 +312,63 @@
 [data-theme="light"] .help-request-card > strong { color: #2f2b3d; }
 [data-theme="light"] .help-request-card > p { color: #4a4757; }
 [data-theme="light"] .help-admin-reply { border-color: #d7ccef; background: #f6f3fc; color: #4a4757; }
+/* Project lab modes & analysis workspace */
+.project-mode-tabs { display: flex; gap: 8px; margin: 0 0 14px; flex-wrap: wrap; }
+.project-mode-tabs button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border: 1px solid #34353a; border-radius: 7px; background: #1b1c1f; color: #a8a8af; font: 600 12px "Manrope",sans-serif; cursor: pointer; }
+.project-mode-tabs button:hover { color: #e4e3e8; border-color: #4a4658; }
+.project-mode-tabs .project-mode-active { border-color: #5a4d78; background: #252238; color: #ddd6f3; }
+.peer-review-state-ready { border-color: #36503d !important; color: #8cbd96 !important; background: #1f2a22; }
+.analysis-howto { margin-top: 14px; padding: 12px; border: 1px solid #312d3b; border-radius: 7px; background: #1d1c22; }
+.analysis-howto h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 8px; color: #ddd9ea; font: 600 13px "Manrope",sans-serif; }
+.analysis-howto ol { margin: 0 0 8px 18px; padding: 0; color: #a7a5ae; font-size: 13px; line-height: 1.6; display: grid; gap: 4px; }
+.analysis-howto p { margin: 0; font-size: 12px; }
+.analysis-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.analysis-actions .small-outline-button { text-decoration: none; }
+.analysis-command-box { display: grid; gap: 4px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid #34353a; border-radius: 6px; background: #151618; }
+.analysis-command-box span { color: #9f95c4; font-size: 11px; font-weight: 600; }
+.analysis-command-box code { color: #e4e3e8; font-size: 13px; word-break: break-all; }
+.analysis-command-box small { color: #7f8088; font-size: 11px; }
+.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.analysis-grid label { display: flex; flex-direction: column; gap: 5px; color: #a4a3ab; font-size: 12px; }
+.analysis-grid textarea, .analysis-question textarea { width: 100%; padding: 8px; border: 1px solid #34353a; border-radius: 5px; background: #151618; color: #ddd; font: inherit; font-size: 13px; line-height: 1.55; resize: vertical; }
+.analysis-questions { margin-top: 14px; }
+.analysis-questions h3 { margin: 0 0 8px; color: #dedde3; font: 600 13px "Manrope",sans-serif; }
+.analysis-question { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.analysis-question span { color: #c9c8cf; font-size: 13px; line-height: 1.5; }
+@media (max-width: 700px) { .analysis-grid { grid-template-columns: 1fr; } }
+[data-theme="light"] .project-mode-tabs button { border-color: #e0dced; background: #fff; color: #55525f; }
+[data-theme="light"] .project-mode-tabs .project-mode-active { border-color: #c7b6eb; background: #efeafb; color: #4b3796; }
+[data-theme="light"] .analysis-howto { border-color: #e0dced; background: #fff; }
+[data-theme="light"] .analysis-howto h3 { color: #2f2b3d; }
+[data-theme="light"] .analysis-howto ol, [data-theme="light"] .analysis-howto p { color: #4a4757; }
+[data-theme="light"] .analysis-command-box { border-color: #e0dced; background: #faf9fc; }
+[data-theme="light"] .analysis-command-box code { color: #2f2b3d; }
+[data-theme="light"] .analysis-grid textarea, [data-theme="light"] .analysis-question textarea { border-color: #ddd9eb; background: #fff; color: #282730; }
+[data-theme="light"] .analysis-questions h3 { color: #2f2b3d; }
+[data-theme="light"] .analysis-question span { color: #3a3745; }
+/* Curriculum enhancements */
+.week-tabs-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.week-tabs-scroll button { white-space: nowrap; flex: 0 0 auto; }
+.idea-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: #a8a7ae; font-size: 13px; line-height: 1.6; }
+.idea-list li { padding-left: 2px; }
+.suggest-section { padding: 12px; border: 1px solid #312d3b; border-radius: 7px; background: #1d1c22; }
+.suggest-field { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; color: #a4a3ab; font-size: 12px; }
+.suggest-field input, .suggest-field textarea { width: 100%; padding: 8px; border: 1px solid #34353a; border-radius: 5px; background: #151618; color: #ddd; font: inherit; font-size: 13px; }
+.personal-notes-area { width: 100%; padding: 10px; border: 1px solid #34353a; border-radius: 6px; background: #151618; color: #ddd; font: inherit; font-size: 13px; line-height: 1.6; resize: vertical; }
+.custom-add-row { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 8px; margin: 10px 0; align-items: center; }
+.custom-add-row input { min-height: 34px; padding: 0 10px; border: 1px solid #34353a; border-radius: 5px; background: #151618; color: #ddd; font-size: 13px; }
+.custom-resource-list { display: flex; flex-direction: column; gap: 8px; }
+.custom-resource-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #303136; border-radius: 6px; background: #1b1c1f; }
+.custom-resource-item a { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 8px; color: inherit; text-decoration: none; }
+.custom-resource-item a svg { flex: 0 0 14px; color: #b9aaf0; margin-top: 2px; }
+.custom-resource-item a span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.custom-resource-item strong { color: #e4e3e8; font-size: 13px; }
+.custom-resource-item small { color: #83848b; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom-resource-item .icon-button { flex: 0 0 auto; }
+@media (max-width: 700px) { .custom-add-row { grid-template-columns: 1fr; } .week-tabs { gap: 10px; padding: 0 12px; } }
+[data-theme="light"] .idea-list { color: #4a4757; }
+[data-theme="light"] .suggest-section { border-color: #e0dced; background: #fff; }
+[data-theme="light"] .suggest-field input, [data-theme="light"] .suggest-field textarea, [data-theme="light"] .personal-notes-area, [data-theme="light"] .custom-add-row input { border-color: #ddd9eb; background: #fff; color: #282730; }
+[data-theme="light"] .custom-resource-item { border-color: #e0dced; background: #fff; }
+[data-theme="light"] .custom-resource-item strong { color: #2f2b3d; }
+[data-theme="light"] .custom-resource-item small { color: #6a6875; }

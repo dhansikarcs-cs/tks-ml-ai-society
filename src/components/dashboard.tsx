@@ -18,7 +18,6 @@ import {
   FileText,
   Flame,
   FlaskConical,
-  FolderKanban,
   LayoutDashboard,
   Menu,
   MoreHorizontal,
@@ -40,7 +39,7 @@ const navigation = [
   { label: "Overview", icon: LayoutDashboard, active: true, href: "/" },
   { label: "Curriculum", icon: BookOpen, detail: "24 weeks", href: "/curriculum" },
   { label: "Resources", icon: FileText, href: "/resources" },
-  { label: "Projects", icon: FolderKanban, href: "/projects" },
+  { label: "Project lab", icon: FlaskConical, href: "/projects" },
   { label: "Notebook", icon: Code2, href: "/notebook" },
 ];
 
@@ -58,6 +57,7 @@ export default function Dashboard() {
   const [activeWeekNumber, setActiveWeekNumber] = useState(1);
   const [memberName, setMemberName] = useState("Learner");
   const [memberInitials, setMemberInitials] = useState("LW");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState<{ title: string; body: string } | null>(null);
   const [nextAssignment, setNextAssignment] = useState<{ title: string; week: number; dueAt: string | null } | null>(null);
   const [pendingAssignmentCount, setPendingAssignmentCount] = useState(0);
@@ -106,11 +106,12 @@ export default function Dashboard() {
     if (!supabase) return;
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      const { data } = await supabase.from("profiles").select("display_name,membership_state").eq("id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("display_name,membership_state,role").eq("id", user.id).maybeSingle();
       if (data?.display_name) {
         setMemberName(data.display_name);
         setMemberInitials(data.display_name.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase());
       }
+      setIsAdmin(data?.role === "admin" && data?.membership_state === "approved");
       if (data?.membership_state === "approved") {
         const { data: latest } = await supabase.from("announcements").select("title,body").eq("published", true).order("published_at", { ascending: false }).limit(1).maybeSingle();
         if (latest) setAnnouncement({ title: latest.title, body: latest.body });
@@ -219,7 +220,8 @@ export default function Dashboard() {
           <button className="nav-item" onClick={() => window.location.assign("/assistant")}><FlaskConical size={17} /><span>AI assistant</span></button>
           <button className="nav-item" onClick={() => window.location.assign("/analytics")}><Clock3 size={17} /><span>Analytics</span></button>
           <button className="nav-item" onClick={() => window.location.assign("/leaderboard")}><Target size={17} /><span>Achievements</span></button>
-          <button className="nav-item" onClick={() => window.location.assign("/admin")}><Settings2 size={17} /><span>Administration</span></button>
+          <button className="nav-item" onClick={() => window.location.assign("/help")}><CircleHelp size={17} /><span>Help center</span></button>
+          {isAdmin && <button className="nav-item" onClick={() => window.location.assign("/admin")}><Settings2 size={17} /><span>Administration</span></button>}
         </div>
 
         <div className="sidebar-bottom">
@@ -229,8 +231,7 @@ export default function Dashboard() {
             <div className="mini-progress"><span style={{ width: `${curriculumPercent}%` }} /></div>
             <div className="week-mini-foot"><span>{currentWeek.title}</span><span>{curriculumPercent}%</span></div>
           </div>
-          <button className="nav-item" onClick={() => window.location.assign("/login")}><Settings2 size={17} /><span>Account &amp; sync</span></button>
-          <button className="nav-item" onClick={() => window.location.assign("/help")}><CircleHelp size={17} /><span>Help center</span></button>
+          <button className="nav-item" onClick={() => void handleAccountAction()}><Settings2 size={17} /><span>Account &amp; sign out</span></button>
           <div className="profile-row">
             <div className="profile-avatar">{memberInitials}</div>
             <div className="profile-copy"><strong>{memberName}</strong><small>{isSupabaseConfigured() ? "Society member" : "Local workspace"}</small></div>

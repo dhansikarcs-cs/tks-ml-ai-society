@@ -266,3 +266,28 @@ h1, h2, h3, h4, p { margin-top: 0; }
 @media (max-width: 650px) { .topbar { height: 53px; padding: 0 15px; }.breadcrumb { font-size: 10px; }.topbar-actions { gap: 7px; }.search-trigger { min-width: 31px; width: 31px; justify-content: center; padding: 0; }.search-trigger > span,.search-trigger kbd { display: none; }.topbar-divider { display: none; }.top-avatar { margin-left: 1px; }.search-popover { top: 48px; right: 12px; width: min(400px,calc(100vw - 24px)); }.page-content { width: calc(100% - 30px); }.preview-notice { align-items: flex-start; font-size: 7px; line-height: 1.5; }.welcome-row { align-items: flex-start; padding: 20px 0 16px; }.welcome-row h1 { font-size: 21px; }.welcome-subtitle { max-width: 285px; font-size: 10px; line-height: 1.55; }.weekly-plan-button { display: none; }.eyebrow { font-size: 8px; }.hero-card { min-height: 240px; padding: 24px 20px; }.hero-content { width: 100%; }.hero-content h2 { max-width: 260px; font-size: 22px; }.hero-description { max-width: 310px; padding-right: 5px; font-size: 10px; }.hero-meta { gap: 10px; }.hero-meta-level { display: none !important; }.hero-art { width: 220px; height: 160px; top: 68px; right: -82px; opacity: .25; transform: scale(.8); }.hero-week-tag { right: 12px; bottom: 10px; font-size: 6px; }.overview-grid { grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; }.stat-card { min-height: 148px; padding: 11px; }.hours-stat { grid-column: 1 / -1; min-height: 132px; }.hours-chart { height: 33px; }.content-grid { grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }.right-rail { display: grid; grid-template-columns: 1fr; gap: 0; }.target-card { order: 0; }.resource-card { order: 1; }.announcement-card { order: 2; }.privacy-note { order: 3; }.focus-copy p { max-width: 260px; }.focus-body { padding: 13px 12px 10px; }.milestone-list { padding: 0 12px 6px; }.milestone-row { font-size: 8px; }.upcoming-copy h4 { font-size: 9px; }.page-footer { margin-top: 21px; padding-bottom: 15px; font-size: 7px; }.lesson-drawer { padding: 18px 19px 15px; }.lesson-drawer h2 { font-size: 23px; }.drawer-bottom > span { max-width: 145px; font-size: 8px; } }
 @media (max-width: 380px) { .welcome-row h1 { font-size: 19px; }.hero-meta { gap: 7px; font-size: 8px; }.stat-trend { font-size: 8px; }.focus-completion { min-width: 51px; }.upcoming-item { gap: 8px; padding: 8px; }.upcoming-copy { flex-direction: column; align-items: flex-start; }.upcoming-copy p { display: block; }.privacy-note { font-size: 7px; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+/* Compact sidebar / less crowding */
+.sidebar { padding: 14px 12px 10px; }
+.sidebar .brand { margin-bottom: 10px; }
+.workspace-switch { height: 34px; margin-bottom: 2px; }
+.nav-group { margin-top: 14px; }
+.nav-label { margin-bottom: 6px; font-size: 10px; }
+.nav-item { height: 34px; font-size: 12px; gap: 10px; }
+.community-group { margin-top: 12px; padding-top: 10px; }
+.week-mini { padding: 9px 10px; margin: 0 0 10px; }
+.week-mini-top { font-size: 9px; }
+.week-mini-title { margin: 7px 0 6px; font-size: 11px; }
+.week-mini-foot { margin-top: 5px; font-size: 10px; }
+.sidebar-bottom { margin-top: auto; padding-top: 4px; }
+.profile-row { padding: 10px 4px 0; margin-top: 8px; }
+.profile-copy strong { font-size: 12px; }
+.profile-copy small { font-size: 10px; }
+@media (max-width: 850px) {
+  .sidebar { padding: 14px 12px 14px; }
+  .nav-item { height: 38px; font-size: 13px; }
+}
+@media (max-height: 700px) {
+  .nav-group { margin-top: 10px; }
+  .week-mini { padding: 8px 9px; }
+  .workspace-switch { height: 32px; }
+}

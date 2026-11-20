@@ -40,6 +40,7 @@ export function ModuleShell({
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [memberName, setMemberName] = useState("");
   const cloudConfigured = isSupabaseConfigured();
   useEffect(() => {
@@ -48,8 +49,9 @@ export function ModuleShell({
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
       setSignedIn(true);
-      const { data } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("display_name,role,membership_state").eq("id", user.id).maybeSingle();
       setMemberName(data?.display_name || user.email?.split("@")[0] || "Member");
+      setIsAdmin(data?.role === "admin" && data?.membership_state === "approved");
     });
   }, []);
 
@@ -59,6 +61,7 @@ export function ModuleShell({
     window.location.assign("/login");
   }
   const initials = (memberName || "M").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase().slice(0, 2);
+  const visibleItems = items.filter((item) => item.href !== "/admin" || isAdmin);
   return (
     <div className="module-frame">
       <aside className={`module-sidebar ${menuOpen ? "module-sidebar-open" : ""}`}>
@@ -69,7 +72,7 @@ export function ModuleShell({
         <div className="module-workspace"><span className="workspace-avatar">T</span><span><strong>Learning workspace</strong><small>{cloudConfigured ? (signedIn ? "Member access" : "Sign in required") : "Local workspace"}</small></span></div>
         <p className="module-nav-label">YOUR WORKSPACE</p>
         <nav className="module-navigation" aria-label="Main navigation">
-          {items.map(({ href, label, icon: NavIcon }) => (
+          {visibleItems.map(({ href, label, icon: NavIcon }) => (
             <Link key={href} href={href} className={`module-nav-link ${pathname === href ? "module-nav-active" : ""}`} aria-current={pathname === href ? "page" : undefined} onClick={() => setMenuOpen(false)}>
               <NavIcon size={16} strokeWidth={1.8} /><span>{label}</span>
             </Link>

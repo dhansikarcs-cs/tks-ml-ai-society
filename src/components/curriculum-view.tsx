@@ -5,14 +5,19 @@ import { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, ExternalLink, Search } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, ExternalLink, Lightbulb, Plus, Search, Send, Trash2, Video } from "lucide-react";
 import { phases, type CurriculumWeek } from "@/lib/curriculum";
 import { readLocal, writeLocal } from "@/lib/local-data";
 import { ModuleShell, Panel } from "@/components/module-shell";
 import { useCurriculumData } from "@/lib/use-curriculum";
 import { loadProgress, persistProgressItem } from "@/lib/progress";
+import { createSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type ProgressMap = Record<string, boolean>;
+type WeekCustom = { notes: string; videos: { title: string; url: string }[]; personalResources: { title: string; url: string }[] };
+type DetailTab = "overview" | "resources" | "assessment" | "ideas" | "mine";
+
+function defaultWeekCustom(): WeekCustom { return { notes: "", videos: [], personalResources: [] }; }
 
 export function CurriculumView() {
   const { curriculum: curriculumData } = useCurriculumData();
@@ -21,138 +26,214 @@ export function CurriculumView() {
   const [activeWeek, setActiveWeek] = useState(1);
   const [openPhase, setOpenPhase] = useState(1);
   const [query, setQuery] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "resources" | "assessment">("overview");
+  const [detailTab, setDetailTab] = useState<DetailTab>("overview");
 
   useEffect(() => {
     setProgress(readLocal("curriculum-progress", {}));
-    void loadProgress().then(setProgress);
     setAnswers(readLocal("assessment-responses", {}));
-    const requestedWeek = Number(new URLSearchParams(window.location.search).get("week"));
-    if (requestedWeek >= 1 && requestedWeek <= 24) {
-      setActiveWeek(requestedWeek);
-      setOpenPhase(Math.ceil(requestedWeek / 4));
-    }
+    const completed = readLocal<ProgressMap>("curriculum-progress", {});
+    const firstIncomplete = curriculumData.find((week) => !completed[`week-${week.week}-complete`])?.week ?? 24;
+    const savedWeek = Number(readLocal("last-active-week", firstIncomplete));
+    const valid = savedWeek >= 1 && savedWeek <= 24 ? savedWeek : firstIncomplete;
+    setActiveWeek(valid);
+    setOpenPhase(Math.ceil(valid / 4));
+    void loadProgress().then(setProgress);
+  }, [curriculumData]);
+
+  useEffect(() => {
+    const load = () => setProgress(readLocal("curriculum-progress", {}));
+    window.addEventListener("tks-local-data", load);
+    return () => window.removeEventListener("tks-local-data", load);
   }, []);
 
-  const selected = curriculumData.find((item) => item.week === activeWeek) ?? curriculumData[0];
-  const completedCount = curriculumData.filter((item) => progress[`week-${item.week}-complete`]).length;
-  const visibleCurriculum = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return curriculumData;
-    return curriculumData.filter((week) =>
-      `${week.title} ${week.summary} ${week.topics.join(" ")} ${week.build}`.toLowerCase().includes(normalized),
-    );
+  const selected = curriculumData.find((week) => week.week === activeWeek) ?? curriculumData[0];
+  const completedWeeks = curriculumData.filter((week) => progress[`week-${week.week}-complete`]).length;
+  const completionPercent = Math.round((completedWeeks / 24) * 100);
+  const searchResults = useMemo(() => {
+    if (!query.trim()) return curriculumData;
+    const q = query.toLowerCase();
+    return curriculumData.filter((week) => `${week.title} ${week.summary} ${week.topics.join(" ")} ${week.build}`.toLowerCase().includes(q));
   }, [query, curriculumData]);
 
-  function toggle(key: string) {
-    const completed = !progress[key];
-    setProgress((current) => ({ ...current, [key]: completed }));
+  const setItem = (key: string, completed: boolean) => {
+    const next = { ...progress, [key]: completed };
+    setProgress(next);
     void persistProgressItem(key, completed);
-    const weekMatch = key.match(/^week-(\d+)-complete$/);
-    if (weekMatch && completed) writeLocal("last-achievement", { title: `Week ${weekMatch[1]} complete`, earnedAt: new Date().toISOString() });
-    else if (weekMatch) writeLocal("last-achievement", null);
-  }
+  };
 
-  function setItem(key: string, checked: boolean) {
-    setProgress((current) => ({ ...current, [key]: checked }));
-    void persistProgressItem(key, checked);
-  }
+  const toggleWeek = () => {
+    const key = `week-${selected.week}-complete`;
+    const value = !progress[key];
+    const next = { ...progress, [key]: value };
+    ["lesson", "coding", "activity", "assignment"].forEach((item) => { next[`week-${selected.week}-${item}`] = value; });
+    setProgress(next);
+    writeLocal("curriculum-progress", next);
+    void persistProgressItem(key, value);
+    ["lesson", "coding", "activity", "assignment"].forEach((item) => void persistProgressItem(`week-${selected.week}-${item}`, value));
+  };
 
-  function setAnswer(key: string, value: string) {
-    setAnswers((current) => {
-      const next = { ...current, [key]: value };
-      writeLocal("assessment-responses", next);
-      return next;
-    });
-  }
+  const setAnswer = (key: string, value: string) => {
+    const next = { ...answers, [key]: value };
+    setAnswers(next);
+    writeLocal("assessment-responses", next);
+  };
 
-  return (
-    <ModuleShell title="Curriculum" description="A 24-week path from mathematical foundations to applied AI engineering." icon={BookOpen}>
-      <div className="curriculum-summary">
-        <div><span className="curriculum-summary-icon"><BookOpen size={17} /></span><div><strong>24 weeks · 6 phases</strong><small>Designed for a steady 5–7 hours each week</small></div></div>
-        <div className="curriculum-progress-copy"><span>{completedCount} of 24 weeks complete</span><strong>{Math.round((completedCount / 24) * 100)}%</strong><div className="curriculum-progress-track"><i style={{ width: `${(completedCount / 24) * 100}%` }} /></div></div>
-      </div>
-      <div className="curriculum-layout">
-        <Panel title="Your learning path" description="Choose a week to explore its lessons and build.">
-          <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a topic or week…" /><kbd>{visibleCurriculum.length}</kbd></label>
-          <div className="phase-list">
-            {phases.map((phase) => {
-              const weeks = visibleCurriculum.filter((week) => week.phase === phase.id);
-              if (query && !weeks.length) return null;
-              const phaseComplete = phase.weeks.filter((week) => progress[`week-${week}-complete`]).length;
-              const expanded = query ? true : openPhase === phase.id;
-              return <section className="phase-block" key={phase.id}>
-                <button className={`phase-heading ${expanded ? "phase-expanded" : ""}`} onClick={() => setOpenPhase(expanded && !query ? 0 : phase.id)} aria-expanded={expanded}>
-                  <span className="phase-number">{String(phase.id).padStart(2, "0")}</span>
-                  <span className="phase-title-wrap"><strong>Month {String(phase.id).padStart(2, "0")} <span>·</span> {phase.title}</strong><small>{phaseComplete}/4 weeks complete</small></span>
-                  {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                </button>
-                {expanded && <div className="week-list">{weeks.map((week) => <WeekListItem key={week.week} week={week} active={week.week === activeWeek} complete={Boolean(progress[`week-${week.week}-complete`])} onSelect={() => { setActiveWeek(week.week); writeLocal("last-active-week", week.week); }} />)}</div>}
-              </section>;
-            })}
-            {!visibleCurriculum.length && <div className="module-empty compact"><Search size={20} /><strong>No matching weeks</strong><span>Try a topic like “probability” or “transformers”.</span></div>}
-          </div>
-        </Panel>
-
-        <div className="curriculum-detail">
-          <WeekDetail
-            week={selected}
-            progress={progress}
-            detailTab={detailTab}
-            setDetailTab={setDetailTab}
-            setItem={setItem}
-            answers={answers}
-            setAnswer={setAnswer}
-            toggleWeek={() => toggle(`week-${selected.week}-complete`)}
-          />
-          <div className="week-switcher">
-            <button disabled={selected.week === 1} onClick={() => { setActiveWeek(selected.week - 1); writeLocal("last-active-week", selected.week - 1); setDetailTab("overview"); }}><ChevronRight className="previous-chevron" size={14} /> Previous week</button>
-            <span>Week {selected.week} of 24</span>
-            <button disabled={selected.week === 24} onClick={() => { setActiveWeek(selected.week + 1); writeLocal("last-active-week", selected.week + 1); setOpenPhase(Math.ceil((selected.week + 1) / 4)); setDetailTab("overview"); }}>Next week <ChevronRight size={14} /></button>
-          </div>
+  return <ModuleShell title="Curriculum" description="A structured 24-week path: objectives, mathematics, practice, resources, ideas to build/analyze, and space for your own notes and videos." icon={BookOpen}>
+    <div className="curriculum-summary">
+      <div><span className="curriculum-summary-icon"><BookOpen size={16} /></span><span><strong>{completedWeeks} of 24 weeks complete</strong><small>Practice-focused progress, saved in your browser and synced for approved members.</small></span></div>
+      <div className="curriculum-progress-copy"><span>Overall progress</span><strong>{completionPercent}%</strong><div className="curriculum-progress-track"><i style={{ width: `${completionPercent}%` }} /></div></div>
+    </div>
+    <div className="curriculum-layout">
+      <Panel title="Phase overview" description="Expand a phase and choose a week.">
+        <label className="module-search" aria-label="Search curriculum"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search weeks, topics, or builds" /></label>
+        <div className="phase-list">
+          {phases.map((phase) => {
+            const expanded = openPhase === phase.id || Boolean(query);
+            const phaseWeeks = searchResults.filter((week) => phase.weeks.includes(week.week));
+            if (query && phaseWeeks.length === 0) return null;
+            return <div key={phase.id} className={`phase-block ${expanded ? "phase-expanded" : ""}`}>
+              <button className="phase-heading" onClick={() => setOpenPhase(expanded ? 0 : phase.id)} aria-expanded={expanded}>
+                <span className="phase-number">P{phase.id}</span>
+                <span className="phase-title-wrap"><strong>{phase.title} <span>· Weeks {phase.weeks[0]}–{phase.weeks[3]}</span></strong><small>{phase.subtitle}</small></span>
+                {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
+              {expanded && <div className="week-list">{phaseWeeks.map((week) => {
+                const complete = progress[`week-${week.week}-complete`];
+                return <button key={week.week} className={`week-list-item ${week.week === selected.week ? "week-list-active" : ""}`} onClick={() => { setActiveWeek(week.week); writeLocal("last-active-week", week.week); setDetailTab("overview"); }}>
+                  <span className={`week-list-state ${complete ? "week-state-complete" : ""}`}>{complete ? <Check size={12} /> : week.week}</span>
+                  <span className="week-list-copy"><strong>Week {week.week}: {week.title}</strong><small>{week.build}</small></span>
+                  {week.week === selected.week && <span className="week-current-marker" />}
+                </button>;
+              })}</div>}
+            </div>;
+          })}
+        </div>
+      </Panel>
+      <div className="curriculum-detail">
+        <WeekDetail
+          key={selected.week}
+          week={selected}
+          progress={progress}
+          detailTab={detailTab}
+          setDetailTab={setDetailTab}
+          setItem={setItem}
+          answers={answers}
+          setAnswer={setAnswer}
+          toggleWeek={toggleWeek}
+        />
+        <div className="week-switcher">
+          <button disabled={selected.week === 1} onClick={() => { setActiveWeek(selected.week - 1); writeLocal("last-active-week", selected.week - 1); setDetailTab("overview"); setOpenPhase(Math.ceil((selected.week - 1) / 4)); }}><ChevronRight size={15} className="previous-chevron" /> Week {selected.week - 1}</button>
+          <span>Week {selected.week} of 24</span>
+          <button disabled={selected.week === 24} onClick={() => { setActiveWeek(selected.week + 1); writeLocal("last-active-week", selected.week + 1); setOpenPhase(Math.ceil((selected.week + 1) / 4)); setDetailTab("overview"); }}>Week {selected.week + 1} <ArrowRight size={15} /></button>
         </div>
       </div>
-    </ModuleShell>
-  );
+    </div>
+  </ModuleShell>;
 }
 
-function WeekListItem({ week, active, complete, onSelect }: { week: CurriculumWeek; active: boolean; complete: boolean; onSelect: () => void }) {
-  return <button className={`week-list-item ${active ? "week-list-active" : ""}`} onClick={onSelect}>
-    <span className={`week-list-state ${complete ? "week-state-complete" : ""}`}>{complete ? <Check size={12} /> : String(week.week).padStart(2, "0")}</span>
-    <span className="week-list-copy"><strong>{week.title}</strong><small>{week.build}</small></span>
-    {active && <span className="week-current-marker" />}
-  </button>;
-}
-
-function WeekDetail({
-  week, progress, detailTab, setDetailTab, setItem, answers, setAnswer, toggleWeek,
-}: {
+function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers, setAnswer, toggleWeek }: {
   week: CurriculumWeek;
   progress: ProgressMap;
-  detailTab: "overview" | "resources" | "assessment";
-  setDetailTab: (tab: "overview" | "resources" | "assessment") => void;
-  setItem: (key: string, checked: boolean) => void;
+  detailTab: DetailTab;
+  setDetailTab: (tab: DetailTab) => void;
+  setItem: (key: string, completed: boolean) => void;
   answers: Record<string, string>;
   setAnswer: (key: string, value: string) => void;
   toggleWeek: () => void;
 }) {
   const checklist = [
-    { id: "lesson", title: "Review learning objectives", meta: "Start here" },
-    { id: "coding", title: "Complete coding practice", meta: `${week.coding.length} exercises` },
+    { id: "lesson", title: "Review the learning objectives", meta: "Concepts and mathematics" },
+    { id: "coding", title: "Complete coding practice", meta: `${week.coding.length} activity${week.coding.length === 1 ? "" : "ies"}` },
     { id: "activity", title: "Try the weekly activity", meta: "Hands-on practice" },
     { id: "assignment", title: "Submit the weekly build", meta: "Project deliverable" },
     { id: "assessment", title: "Check your understanding", meta: `${week.assessment.length} questions` },
   ];
   const completedItems = checklist.filter((item) => progress[`week-${week.week}-${item.id}`]).length;
   const weekDone = Boolean(progress[`week-${week.week}-complete`]);
+
+  const [custom, setCustom] = useState<WeekCustom>(defaultWeekCustom());
+  const [suggestSubject, setSuggestSubject] = useState("");
+  const [suggestBody, setSuggestBody] = useState("");
+  const [suggestMsg, setSuggestMsg] = useState("");
+  const [suggestBusy, setSuggestBusy] = useState(false);
+  const [newVideoTitle, setNewVideoTitle] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newResTitle, setNewResTitle] = useState("");
+  const [newResUrl, setNewResUrl] = useState("");
+
+  useEffect(() => {
+    setCustom(readLocal<WeekCustom>(`week-custom-${week.week}`, defaultWeekCustom()));
+    setSuggestMsg("");
+  }, [week.week]);
+
+  const saveCustom = (next: WeekCustom) => {
+    setCustom(next);
+    writeLocal(`week-custom-${week.week}`, next);
+  };
+
+  const addVideo = () => {
+    const title = newVideoTitle.trim();
+    const url = newVideoUrl.trim();
+    if (!title || !url) return;
+    saveCustom({ ...custom, videos: [...custom.videos, { title, url }] });
+    setNewVideoTitle(""); setNewVideoUrl("");
+  };
+  const addResource = () => {
+    const title = newResTitle.trim();
+    const url = newResUrl.trim();
+    if (!title || !url) return;
+    saveCustom({ ...custom, personalResources: [...custom.personalResources, { title, url }] });
+    setNewResTitle(""); setNewResUrl("");
+  };
+
+  async function submitSuggestion() {
+    const subject = (suggestSubject || `Curriculum suggestion: Week ${week.week} - ${week.title}`).trim();
+    const message = suggestBody.trim();
+    if (message.length < 10) { setSuggestMsg("Please add more detail to your suggestion (at least 10 characters)."); return; }
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) { setSuggestMsg("Sign in with an approved account to suggest curriculum additions to the admin."); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSuggestMsg("Please sign in to send a suggestion."); return; }
+    const { data: profile } = await supabase.from("profiles").select("membership_state").eq("id", user.id).maybeSingle();
+    if (profile?.membership_state !== "approved") { setSuggestMsg("Your membership must be approved before sending suggestions."); return; }
+    setSuggestBusy(true);
+    const { error } = await supabase.from("support_requests").insert({
+      user_id: user.id,
+      category: "other",
+      subject: subject.slice(0, 160),
+      message: `[Curriculum suggestion for Week ${week.week}: ${week.title}]\n\n${message}`.slice(0, 5000),
+      status: "open",
+    });
+    setSuggestBusy(false);
+    if (error) { setSuggestMsg(error.message); return; }
+    setSuggestBody(""); setSuggestSubject("");
+    setSuggestMsg("Suggestion sent to the administrator for review. Thank you!");
+  }
+
+  const buildIdeas = [
+    `Core build: ${week.build}. Start with the simplest working version, then add one improvement at a time.`,
+    `Apply it to a small real dataset or example relevant to you; document assumptions and limitations.`,
+    `Extend the weekly assignment: "${week.assignment}" — add evaluation, visualization, or a short written analysis.`,
+    ...(week.coding[0] ? [`Turn coding practice into a mini-project: ${week.coding[0]}.`] : []),
+  ];
+  const analyzeIdeas = [
+    `Analyze a repository or notebook related to "${week.title}" (search GitHub for ${week.topics[0] || week.build}); identify architecture, key algorithms, and how results are evaluated.`,
+    `Compare two approaches to ${week.topics[1] || week.topics[0] || "this topic"}: what trade-offs do they make?`,
+    `Run or trace the week’s build and write an error/limitation analysis: where does it fail and why?`,
+    ...(week.paper ? [`Read and summarize the paper: ${week.paper}. What problem, method, evidence, and limitations?`] : [`Find one short article/paper on ${week.topics[0] || week.title} and summarize its main claim and evidence.`]),
+  ];
+
   return <article className="week-detail-card">
     <div className="week-detail-top"><div><span className="week-detail-kicker">MONTH {String(week.phase).padStart(2, "0")} <span>·</span> WEEK {String(week.week).padStart(2, "0")}</span><h2>{week.title}</h2><p>{week.summary}</p></div><div className="week-completion-badge"><strong>{completedItems}/{checklist.length}</strong><small>steps</small></div></div>
-    <div className="week-detail-meta"><span><BookOpen size={14} /> 5 learning elements</span><span><Clock3 size={14} /> 5–7 hours</span><span className="week-build-pill">{week.build}</span></div>
-    <div className="week-tabs" role="tablist" aria-label="Week details">
+    <div className="week-detail-meta"><span><BookOpen size={14} /> {checklist.length} learning elements</span><span><Clock3 size={14} /> 5–7 hours</span><span className="week-build-pill">{week.build}</span></div>
+    <div className="week-tabs week-tabs-scroll" role="tablist" aria-label="Week details">
       <button role="tab" aria-selected={detailTab === "overview"} className={detailTab === "overview" ? "week-tab-active" : ""} onClick={() => setDetailTab("overview")}>Overview</button>
       <button role="tab" aria-selected={detailTab === "resources"} className={detailTab === "resources" ? "week-tab-active" : ""} onClick={() => setDetailTab("resources")}>Resources <span>{week.resources.length}</span></button>
       <button role="tab" aria-selected={detailTab === "assessment"} className={detailTab === "assessment" ? "week-tab-active" : ""} onClick={() => setDetailTab("assessment")}>Assessment</button>
+      <button role="tab" aria-selected={detailTab === "ideas"} className={detailTab === "ideas" ? "week-tab-active" : ""} onClick={() => setDetailTab("ideas")}>Build &amp; analyze ideas</button>
+      <button role="tab" aria-selected={detailTab === "mine"} className={detailTab === "mine" ? "week-tab-active" : ""} onClick={() => setDetailTab("mine")}>My notes &amp; videos</button>
     </div>
+
     {detailTab === "overview" && <div className="week-detail-content">
       <section className="detail-section"><h3>By the end of this week</h3><ul className="objective-list">{week.objectives.map((objective) => <li key={objective}><CheckCircle2 size={15} />{objective}</li>)}</ul></section>
       <section className="detail-section"><h3>Topics &amp; ideas</h3><div className="topic-pills">{week.topics.map((topic) => <span key={topic}>{topic}</span>)}</div></section>
@@ -168,14 +249,43 @@ function WeekDetail({
       <section className="detail-section assignment-box"><div><span>WEEKLY BUILD</span><h3>{week.build}</h3><p>{week.assignment}</p></div><Link className="small-outline-button" href={`/projects?week=${week.week}`}>Open project lab <ArrowRight size={14} /></Link></section>
       <div className="week-checklist"><div><h3>Your weekly checklist</h3><span>{completedItems} of {checklist.length} complete</span></div>{checklist.map((item) => <label key={item.id} className="curriculum-check-row"><input type="checkbox" checked={Boolean(progress[`week-${week.week}-${item.id}`])} onChange={(event) => setItem(`week-${week.week}-${item.id}`, event.target.checked)} /><span className="curriculum-check-visual">{progress[`week-${week.week}-${item.id}`] && <Check size={12} />}</span><span><strong>{item.title}</strong><small>{item.meta}</small></span></label>)}</div>
       <button className={`complete-week-button ${weekDone ? "week-is-complete" : ""}`} onClick={toggleWeek}>{weekDone ? <><CheckCircle2 size={16} /> Week marked complete</> : <>Mark week complete <ArrowRight size={15} /></>}</button>
-      <p className="progress-save-note">Progress is saved in this browser on this device. Add Supabase to sync it across devices.</p>
+      <p className="progress-save-note">Progress is saved in this browser and synced for approved members when cloud access is available.</p>
     </div>}
+
     {detailTab === "resources" && <div className="week-detail-content"><div className="detail-section"><h3>Curated for week {week.week}</h3><p className="module-muted">External resources open in a new tab. Some courses may require enrollment or payment.</p><div className="week-resource-list">{week.resources.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title}</strong><small>{resource.kind}{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div><Link href={`/resources?week=${week.week}`} className="inline-module-link">Browse the full resource library <ArrowRight size={14} /></Link></div></div>}
+
     {detailTab === "assessment" && <div className="week-detail-content"><div className="detail-section"><h3>Quick understanding check</h3><p className="module-muted">Answer in your own words. This practice check is not graded.</p><div className="assessment-list">{week.assessment.map((question, index) => { const key = `week-${week.week}-question-${index}`; return <label key={question} className="assessment-row"><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{question}</strong><textarea value={answers[key] ?? ""} onChange={(event) => setAnswer(key, event.target.value)} placeholder="Jot down your explanation…" rows={2} /></div></label>; })}</div><p className="progress-save-note">Practice responses are saved in this browser, not submitted or graded.</p></div></div>}
+
+    {detailTab === "ideas" && <div className="week-detail-content">
+      <section className="detail-section"><h3><Lightbulb size={15} /> What to build this week (ideas & examples)</h3><ul className="idea-list">{buildIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href={`/projects?week=${week.week}`}>Start building in Project lab <ArrowRight size={14} /></Link></section>
+      <section className="detail-section"><h3><Search size={15} /> How to analyze (ideas & examples)</h3><ul className="idea-list">{analyzeIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href="/projects">Open repo analysis workspace <ArrowRight size={14} /></Link></section>
+      <section className="detail-section suggest-section"><h3>Suggest an addition to this week’s curriculum</h3><p className="module-muted">Have a great video, note, resource, or idea that should be added for everyone? Send it to the administrator for review.</p>
+        <label className="suggest-field">Subject (optional)<input value={suggestSubject} onChange={(e) => setSuggestSubject(e.target.value)} placeholder={`e.g. Add video/resource for Week ${week.week}`} /></label>
+        <label className="suggest-field">Your suggestion<textarea value={suggestBody} onChange={(e) => setSuggestBody(e.target.value)} rows={4} placeholder="Describe the resource, link, note, or idea and why it helps this week…" /></label>
+        <button className="primary-button module-action-button" disabled={suggestBusy || !isSupabaseConfigured()} onClick={() => void submitSuggestion()}><Send size={14} /> {suggestBusy ? "Sending…" : "Send suggestion to admin"}</button>
+        {!isSupabaseConfigured() && <p className="module-muted">Sign-in and cloud access are required to send suggestions.</p>}
+        {suggestMsg && <p className="module-status-message" role="status">{suggestMsg}</p>}
+      </section>
+    </div>}
+
+    {detailTab === "mine" && <div className="week-detail-content">
+      <section className="detail-section"><h3>My personal notes for Week {week.week}</h3><p className="module-muted">Customize this week for yourself. Your notes are saved locally in this browser.</p>
+        <textarea className="personal-notes-area" value={custom.notes} onChange={(e) => saveCustom({ ...custom, notes: e.target.value })} rows={6} placeholder="Write your own notes, summaries, reminders, or insights for this week…" />
+      </section>
+      <section className="detail-section"><h3><Video size={15} /> My videos for this week</h3><p className="module-muted">Add videos you find helpful (YouTube, lectures, talks, etc.). Saved locally.</p>
+        <div className="custom-add-row"><input value={newVideoTitle} onChange={(e) => setNewVideoTitle(e.target.value)} placeholder="Video title" /><input value={newVideoUrl} onChange={(e) => setNewVideoUrl(e.target.value)} placeholder="https://…" /><button className="small-outline-button" onClick={addVideo}><Plus size={13} /> Add</button></div>
+        <div className="custom-resource-list">{custom.videos.map((v, i) => <div key={`${v.url}-${i}`} className="custom-resource-item"><a href={v.url} target="_blank" rel="noreferrer"><Video size={14} /> <span><strong>{v.title}</strong><small>{v.url}</small></span></a><button className="icon-button" aria-label="Remove video" onClick={() => saveCustom({ ...custom, videos: custom.videos.filter((_, idx) => idx !== i) })}><Trash2 size={14} /></button></div>)}{!custom.videos.length && <p className="module-muted">No personal videos added yet.</p>}</div>
+      </section>
+      <section className="detail-section"><h3>My extra resources / links</h3><p className="module-muted">Add articles, docs, repos, or any links you want to keep for this week.</p>
+        <div className="custom-add-row"><input value={newResTitle} onChange={(e) => setNewResTitle(e.target.value)} placeholder="Resource title" /><input value={newResUrl} onChange={(e) => setNewResUrl(e.target.value)} placeholder="https://…" /><button className="small-outline-button" onClick={addResource}><Plus size={13} /> Add</button></div>
+        <div className="custom-resource-list">{custom.personalResources.map((r, i) => <div key={`${r.url}-${i}`} className="custom-resource-item"><a href={r.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> <span><strong>{r.title}</strong><small>{r.url}</small></span></a><button className="icon-button" aria-label="Remove resource" onClick={() => saveCustom({ ...custom, personalResources: custom.personalResources.filter((_, idx) => idx !== i) })}><Trash2 size={14} /></button></div>)}{!custom.personalResources.length && <p className="module-muted">No personal resources added yet.</p>}</div>
+      </section>
+      <p className="progress-save-note">Personal notes, videos, and links are saved in this browser on this device.</p>
+    </div>}
   </article>;
 }
 
 function MathLine({ value }: { value: string }) {
-  if (!/[=∑Σ∇λ∞∈^√]/.test(value)) return <>{value}</>;
-  return <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{`$$${value}$$`}</ReactMarkdown>;
+  if (!/[=^_\\∑√∫λσμπ]/.test(value)) return <>{value}</>;
+  return <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{`$${value}$`}</ReactMarkdown>;
 }
