@@ -266,7 +266,7 @@ export default function Dashboard() {
         )}
 
         <div className="page-content">
-          <div className="preview-notice"><span className="preview-indicator" /> {isSupabaseConfigured() ? "MEMBER WORKSPACE" : "LOCAL WORKSPACE"} <span className="preview-divider">Â·</span> {isSupabaseConfigured() ? "Signed in with secure member access. Your progress and focus sessions are saved on this device and can sync when available." : "Your progress and focus sessions are saved in this browser on this device."}</div>
+          <div className="preview-notice"><span className="preview-indicator" /> {isSupabaseConfigured() ? (signedIn ? "MEMBER WORKSPACE" : "MEMBER ACCESS") : "LOCAL WORKSPACE"} <span className="preview-divider">·</span> {isSupabaseConfigured() ? (signedIn ? "Signed in with secure member access. Your progress and focus sessions are saved on this device and can sync when available." : "Sign in with an approved member account to access society features and sync. Your local progress stays saved on this device.") : "Your progress and focus sessions are saved in this browser on this device."}</div>
           <div className="welcome-row">
             <div>
               <div className="eyebrow"><span className="status-dot" /> {todayLabel}</div>

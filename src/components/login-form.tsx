@@ -15,8 +15,36 @@ export function LoginForm() {
   const configured = isSupabaseConfigured();
 
   useEffect(() => {
-    const modeParam = new URLSearchParams(window.location.search).get("mode");
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get("mode");
+    const code = params.get("code");
+    const errorDescription = params.get("error_description") || params.get("error");
     if (modeParam === "update") setMode("update");
+    if (errorDescription) {
+      setMessage(decodeURIComponent(errorDescription.replace(/\+/g, " ")));
+      setMode("recover");
+    }
+    const supabase = createSupabaseBrowserClient();
+    if (code && supabase) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (!error) {
+          setMode("update");
+          setMessage("Verified. Choose a new password for your account.");
+          window.history.replaceState({}, "", "/login?mode=update");
+        } else {
+          setMode("recover");
+          setMessage("This reset link is invalid or has expired. Please request a new one.");
+        }
+      });
+    }
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("update");
+        setMessage("Verified. Choose a new password for your account.");
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -34,18 +62,29 @@ export function LoginForm() {
     setBusy(true);
 
     if (mode === "recover") {
+      if (!email) {
+        setBusy(false);
+        return setMessage("Enter the email address you used for your account.");
+      }
       const result = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login?mode=update` });
       setBusy(false);
-      setMessage(result.error?.message ?? "If an account exists for that email, password reset instructions have been sent.");
+      if (result.error) return setMessage(result.error.message);
+      setMessage("If an account exists for that email, we've sent a password reset link. Check your inbox and spam folder, then open the link to set a new password.");
       return;
     }
 
     if (mode === "update") {
+      if (password.length < 8) {
+        setBusy(false);
+        return setMessage("Choose a password with at least 8 characters.");
+      }
       const result = await supabase.auth.updateUser({ password });
       setBusy(false);
-      if (result.error) return setMessage(result.error.message);
+      if (result.error) return setMessage(result.error.message || "Could not update password. Your reset link may have expired—request a new one.");
+      try { await supabase.auth.signOut(); } catch {}
+      window.history.replaceState({}, "", "/login");
       setMode("sign-in");
-      setMessage("Password updated. Sign in with your new password.");
+      setMessage("Password updated successfully. Sign in with your new password.");
       return;
     }
 
@@ -112,7 +151,7 @@ export function LoginForm() {
           <span className="account-mark"><BrainCircuit size={19} /></span>
           <p className="account-eyebrow">TKS ML &amp; AI SOCIETY</p>
           <h1>{mode === "sign-in" ? "Sign in" : mode === "sign-up" ? "Create your account" : mode === "recover" ? "Reset password" : "Set a new password"}</h1>
-          <p>{mode === "sign-in" ? "Use your society account to continue." : mode === "sign-up" ? "Request access to the learning platform. Membership requires administrator approval." : mode === "recover" ? "We’ll email you a secure link to reset your password." : "Choose a new password for your account."}</p>
+          <p>{mode === "sign-in" ? "Use your registered email and password to continue." : mode === "sign-up" ? "Register with your details to request access. Membership requires administrator approval before you can use the platform." : mode === "recover" ? "Enter your account email and we’ll send a secure link to set a new password." : "Enter a new password for your account (at least 8 characters)."}</p>
 
           {!configured && (
             <div className="setup-callout">
@@ -150,7 +189,7 @@ export function LoginForm() {
             <button className="account-primary" disabled={!configured || busy}>{busy ? "Please wait…" : mode === "sign-in" ? "Sign in" : mode === "sign-up" ? "Request access" : mode === "recover" ? "Send reset link" : "Update password"} <ArrowRight size={15} /></button>
           </form>
 
-          {mode === "sign-in" && <button className="account-forgot" onClick={() => { setMode("recover"); setMessage(""); }}>Forgot password?</button>}
+          {mode === "sign-in" && <button type="button" className="account-forgot" onClick={() => { setMode("recover"); setMessage(""); }}>Forgot your password?</button>}
           <button className="account-switch" onClick={() => { setMode(mode === "sign-up" || mode === "recover" || mode === "update" ? "sign-in" : "sign-up"); setMessage(""); setAffiliation("tks"); }}>
             {mode === "sign-in" ? "New here? Create an account" : mode === "sign-up" ? "Already have an account? Sign in" : "Back to sign in"}
           </button>
