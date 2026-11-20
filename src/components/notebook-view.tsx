@@ -5,12 +5,12 @@ import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import {
-  ArrowDownToLine, ArrowLeftRight, Check, Cloud, FilePlus2, Folder, Link2,
-  Pin, Plus, Search, Trash2, TriangleAlert,
+  ArrowDownToLine, ArrowLeftRight, Check, Cloud, Download, FilePlus2, Folder, Link2,
+  Pin, Plus, Search, Trash2, TriangleAlert, Upload,
 } from "lucide-react";
 import { ModuleShell, Panel } from "@/components/module-shell";
 import { curriculum } from "@/lib/curriculum";
-import { loadNotes, readLocal, removeNote, saveNote, writeLocal, type Note } from "@/lib/local-data";
+import { exportWorkspaceBackup, importWorkspaceBackup, loadNotes, readLocal, removeNote, saveNote, writeLocal, type Note, type WorkspaceBackup } from "@/lib/local-data";
 import { createSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Conflict = { id: string; local: Note; cloud: Record<string, unknown> };
@@ -124,6 +124,53 @@ export function NotebookView() {
     URL.revokeObjectURL(url);
   }
 
+  async function exportAllNotes() {
+    const all = await loadNotes();
+    if (!all.length) { setSyncMessage("No notes to export yet."); return; }
+    const content = all.map((note) => `# ${note.title || "Untitled note"}\n\n${note.body}\n\n---\nFolder: ${note.folder || "General"}\nTags: ${note.tags.join(", ")}\nUpdated: ${note.updatedAt}\n`).join("\n\n====================\n\n");
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "tks-notes-backup.md";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setSyncMessage("All notes exported as Markdown. Save it to your preferred drive or cloud.");
+  }
+
+  async function downloadWorkspaceBackup() {
+    try {
+      const backup = await exportWorkspaceBackup();
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `tks-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setSyncMessage("Workspace backup downloaded (notes, progress, projects, and local data). Store it in your preferred drive or cloud.");
+    } catch {
+      setSyncMessage("Could not create a backup. Try exporting the current note as Markdown.");
+    }
+  }
+
+  async function importWorkspaceBackupFile(file: File) {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as WorkspaceBackup;
+      if (!parsed || parsed.version !== 1) { setSyncMessage("That file is not a supported TKS workspace backup."); return; }
+      if (!window.confirm("Import this backup? Local data and notes with matching IDs will be updated/added on this device.")) return;
+      await importWorkspaceBackup(parsed);
+      const items = await loadNotes();
+      setNotes(items);
+      setSelectedId(items[0]?.id ?? null);
+      setSaveStatus("saved");
+      setSyncMessage("Backup imported on this device. Your local workspace data has been restored/merged.");
+    } catch {
+      setSyncMessage("Could not import that backup file. Make sure it is a valid TKS backup JSON.");
+    }
+  }
+
   async function syncCloud() {
     try { await flushSelected(); }
     catch { setSyncMessage("Save the current note locally before syncing."); return; }
@@ -229,7 +276,7 @@ export function NotebookView() {
         {selected ? <>
           <div className="notebook-toolbar">
             <div className={`autosave-status autosave-${saveStatus}`}>{saveStatus === "saved" ? <Check size={13} /> : saveStatus === "error" ? <TriangleAlert size={13} /> : <span className="saving-spinner" />}{saveStatus === "saved" ? "Saved" : saveStatus === "error" ? "Save issue" : saveStatus === "loading" ? "Loading…" : "Saving…"}</div>
-            <div className="notebook-actions"><button className={`icon-text-button ${selected.pinned ? "pinned-action" : ""}`} onClick={() => updateSelected({ pinned: !selected.pinned })}><Pin size={14} /> {selected.pinned ? "Pinned" : "Pin"}</button><button className="icon-text-button" onClick={exportNote}><ArrowDownToLine size={14} /> Export</button><button className="icon-text-button delete-action" onClick={deleteSelected} aria-label="Delete note"><Trash2 size={14} /></button></div>
+            <div className="notebook-actions"><button className={`icon-text-button ${selected.pinned ? "pinned-action" : ""}`} onClick={() => updateSelected({ pinned: !selected.pinned })}><Pin size={14} /> {selected.pinned ? "Pinned" : "Pin"}</button><button className="icon-text-button" onClick={exportNote}><ArrowDownToLine size={14} /> Export note</button><button className="icon-text-button delete-action" onClick={deleteSelected} aria-label="Delete note"><Trash2 size={14} /></button></div>
           </div>
           <input className="note-title-input" value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} placeholder="Untitled note" aria-label="Note title" />
           <div className="note-meta-controls"><label>Folder <input value={selected.folder ?? "General"} maxLength={48} onChange={(event) => updateSelected({ folder: event.target.value || "General" })} placeholder="General" /></label><label>Week <select value={selected.week ?? ""} onChange={(event) => updateSelected({ week: event.target.value ? Number(event.target.value) : null })}><option value="">Unlinked</option>{curriculum.map((week) => <option key={week.week} value={week.week}>Week {week.week}: {week.title}</option>)}</select></label><label>Tags <input value={selected.tags.join(", ")} onChange={(event) => updateSelected({ tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) })} placeholder="e.g. linear algebra, ideas" /></label></div>
@@ -242,8 +289,13 @@ export function NotebookView() {
         </> : <div className="notebook-welcome"><span><FilePlus2 size={23} /></span><h2>A space for working ideas.</h2><p>Keep notes, equations, code snippets, and questions connected to your learning journey.</p><button className="primary-button" onClick={createNote}><Plus size={15} /> Create your first note</button></div>}
       </section>
     </div>
-    <Panel title="Local-first by design" description="Notes are stored in this browser's IndexedDB. Export Markdown for a portable recovery copy. Cloud syncing is optional and requires an approved Supabase account.">
-      <p className="module-muted">Notes are private until you explicitly share them. If you clear browser data, local notes can be lost—use Export to keep your own backup.</p>
+    <Panel title="Local-first notes & backup" description="Your notes and learning data are stored on this device. Back them up to your preferred drive or cloud anytime.">
+      <div className="backup-actions">
+        <button className="small-outline-button" onClick={() => void exportAllNotes()}><Download size={14} /> Export all notes (Markdown)</button>
+        <button className="small-outline-button" onClick={() => void downloadWorkspaceBackup()}><ArrowDownToLine size={14} /> Download workspace backup</button>
+        <label className="small-outline-button backup-import-label"><Upload size={14} /> Import backup<input type="file" accept="application/json,.json" className="sr-only-input" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importWorkspaceBackupFile(file); e.currentTarget.value = ""; }} /></label>
+      </div>
+      <p className="module-muted">“Workspace backup” includes notes, curriculum progress, projects/analyses, resource saves, and other local workspace data. Save the file to Google Drive, OneDrive, iCloud, or any storage you prefer. Cloud sync to the society workspace is optional and requires an approved account.</p>
     </Panel>
   </ModuleShell>;
 }

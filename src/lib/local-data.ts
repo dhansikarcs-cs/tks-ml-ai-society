@@ -47,6 +47,66 @@ export function writeLocal<T>(key: string, value: T) {
   window.dispatchEvent(new CustomEvent("tks-local-data", { detail: { key } }));
 }
 
+export function readAllLocal(): Record<string, unknown> {
+  if (typeof window === "undefined") return {};
+  const data: Record<string, unknown> = {};
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const full = window.localStorage.key(i);
+    if (!full || !full.startsWith(PREFIX)) continue;
+    const key = full.slice(PREFIX.length);
+    // Skip transient/sensitive-ish sync internals if desired? keep all local workspace data for portability.
+    try {
+      const raw = window.localStorage.getItem(full);
+      data[key] = raw ? JSON.parse(raw) : null;
+    } catch {
+      data[key] = window.localStorage.getItem(full);
+    }
+  }
+  return data;
+}
+
+export function writeAllLocal(data: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  for (const [key, value] of Object.entries(data)) {
+    try {
+      window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    } catch {
+      // ignore individual key failures
+    }
+  }
+  window.dispatchEvent(new CustomEvent("tks-local-data", { detail: { key: "*" } }));
+}
+
+export type WorkspaceBackup = {
+  version: 1;
+  exportedAt: string;
+  localStorage: Record<string, unknown>;
+  notes: Note[];
+};
+
+export async function exportWorkspaceBackup(): Promise<WorkspaceBackup> {
+  const notes = await loadNotes().catch(() => [] as Note[]);
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    localStorage: readAllLocal(),
+    notes,
+  };
+}
+
+export async function importWorkspaceBackup(backup: WorkspaceBackup) {
+  if (!backup || backup.version !== 1) throw new Error("Unsupported backup file.");
+  if (backup.localStorage && typeof backup.localStorage === "object") {
+    writeAllLocal(backup.localStorage as Record<string, unknown>);
+  }
+  if (Array.isArray(backup.notes)) {
+    for (const note of backup.notes) {
+      if (note && typeof note.id === "string") await saveNote(note as Note);
+    }
+  }
+  window.dispatchEvent(new CustomEvent("tks-local-data", { detail: { key: "*" } }));
+}
+
 export function loadNotes(): Promise<Note[]> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") return resolve([]);

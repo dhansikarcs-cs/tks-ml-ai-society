@@ -87,7 +87,7 @@ export function HelpCenter() {
       <div className="help-layout">
         <Panel title="Send a request" description="Be specific so the admin can help you quickly. Include what you were trying to do and what went wrong.">
           {!configured ? (
-            <p className="module-muted">Help requests require a signed-in member account.</p>
+            <p className="module-muted">Help requests are a society feature and require a signed-in member account. For local learning, you can continue using all workspace tools on this device.</p>
           ) : (
             <form className="admin-form help-form" onSubmit={submit}>
               <label>Category

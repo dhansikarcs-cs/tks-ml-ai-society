@@ -42,6 +42,14 @@ const repoQuestions = [
   "How does the implementation work?",
 ];
 const capstoneItems = ["Define problem and evaluation criteria", "Collect or select a dataset and document its limits", "Establish a baseline and run experiments", "Analyse results and errors", "Document code, methods, and mathematics", "Write a reflection and future work section", "Prepare repository and presentation materials"];
+const suggestedAnalyzeRepos = [
+  { title: "scikit-learn/scikit-learn", url: "https://github.com/scikit-learn/scikit-learn", note: "Classical ML algorithms, estimators, and API design." },
+  { title: "pytorch/examples", url: "https://github.com/pytorch/examples", note: "Reference implementations: vision, NLP, RL and more." },
+  { title: "karpathy/micrograd", url: "https://github.com/karpathy/micrograd", note: "Tiny autograd engine — excellent for understanding backprop." },
+  { title: "karpathy/nanoGPT", url: "https://github.com/karpathy/nanoGPT", note: "Minimal GPT training/inference codebase." },
+  { title: "huggingface/transformers", url: "https://github.com/huggingface/transformers", note: "Large-scale transformer models and tooling." },
+  { title: "microsoft/ML-For-Beginners", url: "https://github.com/microsoft/ML-For-Beginners", note: "Beginner-friendly ML curriculum and projects." },
+];
 
 export function ProjectLab() {
   const [labMode, setLabMode] = useState<"build" | "analyze">("build");
@@ -217,6 +225,29 @@ export function ProjectLab() {
   useEffect(() => { if (!selectedId && projects[0]) setSelectedId(projects[0].id); }, [projects, selectedId]);
   useEffect(() => { if (!selectedAnalysisId && analyses[0]) setSelectedAnalysisId(analyses[0].id); }, [analyses, selectedAnalysisId]);
 
+  const startSuggestedAnalysis = (repo: { title: string; url: string; note?: string }) => {
+    const analysis: RepoAnalysis = {
+      id: crypto.randomUUID(),
+      title: `Analyze ${repo.title}`,
+      repository: repo.url,
+      source: "others",
+      purpose: `Understand the architecture, algorithms, and implementation of ${repo.title}. ${repo.note ?? ""}`.trim(),
+      notes: "",
+      findings: "",
+      architecture: "",
+      algorithms: "",
+      importantFiles: "",
+      runNotes: "",
+      questions: repoQuestions.map((text) => ({ text, answer: "" })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    persistAnalyses([analysis, ...analyses]);
+    setSelectedAnalysisId(analysis.id);
+    setLabMode("analyze");
+    setMessage(`Analysis workspace created for ${repo.title}. Clone it locally and start documenting your findings.`);
+  };
+
   const toggleMilestone = (index: number) => {
     if (!selected) return;
     const milestones = selected.milestones.map((m, i) => i === index ? { ...m, done: !m.done } : m);
@@ -268,16 +299,16 @@ export function ProjectLab() {
   const cloneCommand = selectedAnalysis?.repository ? `git clone ${selectedAnalysis.repository.trim()}` : "git clone <repository-url>";
   const openUrl = selectedAnalysis?.repository?.trim() || "";
   const cloudStatusText = !isSupabaseConfigured()
-    ? "Cloud membership is not configured for this workspace yet."
+    ? "Running in local workspace mode on this device. Society sign-in/sync is not configured."
     : cloudReady
-      ? "Cloud access is active. Approved work can sync to your society workspace."
+      ? "Signed in with an approved membership — projects can sync to the society workspace for review."
       : signedIn
-        ? "Signed in, but cloud sync and society review require an approved membership."
-        : "Sign in with an approved member account to enable cloud sync and society review.";
+        ? "Signed in. Society sync and review become available after membership approval."
+        : "Your projects and analyses are saved locally. Sign in with an approved member account if you want to sync or submit for society review.";
 
-  return <ModuleShell title="Project lab" description="Build your own projects and analyze repositories — yours or others’. Document experiments, run work locally, and submit for society review when cloud access is approved." icon={FlaskConical}>
+  return <ModuleShell title="Project lab" description="Build your own projects and analyze repositories — yours or others’. Everything you create here is saved locally on this device; society sync and review are optional when you’re an approved member." icon={FlaskConical}>
     <div className="project-lab-overview">
-      <div><span className="project-overview-icon"><Sparkles size={16} /></span><span><strong>{labMode === "build" ? "Build & track projects" : "Analyze repositories"}</strong><small>{cloudReady ? "Cloud sync and review available." : (isSupabaseConfigured() ? "Local workspace + analysis; cloud review depends on membership." : "Local workspace on this device.")}</small></span></div>
+      <div><span className="project-overview-icon"><Sparkles size={16} /></span><span><strong>{labMode === "build" ? "Build & track projects" : "Analyze repositories"}</strong><small>{cloudReady ? "Local work + society sync/review available." : "Saved locally on this device. Optional society sync/review when signed in and approved."}</small></span></div>
       <div className="project-lab-count"><strong>{labMode === "build" ? projects.length : analyses.length}</strong><span>{labMode === "build" ? "projects" : "analyses"}</span></div>
     </div>
 
@@ -287,7 +318,7 @@ export function ProjectLab() {
     </div>
 
     {labMode === "build" && <>
-    <Panel title="Start a new project" description="Define what you will build, evaluate, and document. Your own project work is saved locally and can sync when cloud access is approved.">
+    <Panel title="Start a new project" description="Define what you will build, evaluate, and document. Your project work is saved locally on this device and can optionally sync to the society workspace if you’re an approved member.">
       <form className="new-project-form" onSubmit={createProject}>
         <label className="project-name-field">Project title<input name="title" required placeholder="e.g. Week 3 PCA visual exploration" /></label>
         <label>Repository URL<input name="repository" placeholder="https://github.com/username/repository (optional)" /></label>
@@ -300,12 +331,12 @@ export function ProjectLab() {
 
     {assignmentWeek && <Panel title={`Week ${assignmentWeek} assignment`} description={curriculum[assignmentWeek - 1]?.assignment || "Weekly assignment"} action={assignmentDraft.status === "submitted" ? <span className="member-state member-submitted">Submitted</span> : null}>
       {assignment && <p className="assignment-cloud-note"><Cloud size={13} /> This assignment is published for members. Your submission will be visible to administrators.</p>}
-      {!assignment && <p className="assignment-cloud-note"><Cloud size={13} /> {cloudReady ? "No published cloud assignment found for this week yet. Track your build in a project below." : (signedIn ? "No published cloud assignment found for this week, or your membership is not approved yet. You can still track work locally." : "Sign in with an approved member account to load published assignments. You can still track your build locally.")}</p>}
+      {!assignment && <p className="assignment-cloud-note"><Cloud size={13} /> {cloudReady ? "No published society assignment found for this week yet. You can still plan and track your build locally below." : "You can plan and track your weekly build locally here. Published society assignments and submissions are available when signed in with an approved membership."}</p>}
       <div className="assignment-submit-form"><label>Repository URL (optional)<input value={assignmentDraft.repository} onChange={(event) => setAssignmentDraft((current) => ({ ...current, repository: event.target.value }))} placeholder="https://github.com/owner/repository" /></label><label>Technical explanation &amp; reflection<textarea value={assignmentDraft.response} onChange={(event) => setAssignmentDraft((current) => ({ ...current, response: event.target.value }))} rows={4} placeholder="What did you implement? What did you learn? What are the limitations?" /></label><div><button className="small-outline-button" disabled={assignmentSaving} onClick={() => void saveAssignment(false)}>Save draft</button><button className="primary-button module-action-button" disabled={assignmentSaving || assignmentDraft.status === "submitted"} onClick={() => void saveAssignment(true)}><Send size={13} /> {assignmentSaving ? "Saving…" : assignmentDraft.status === "submitted" ? "Submitted" : "Submit assignment"}</button></div></div>
     </Panel>}
 
     <div className="project-workspace-layout">
-      <Panel title="My projects" description={cloudReady ? "Saved locally and synced to your approved society workspace." : "Saved in this browser. Sign in with an approved membership to sync and submit for society review."}>
+      <Panel title="My projects" description={cloudReady ? "Saved locally on this device and synced to your approved society workspace." : "Saved locally in this browser on this device. You can back up/export anytime; optional society sync/review is available for approved members."}>
         <div className="project-list">
           {projects.map((project) => <button className={`project-list-card ${project.id === selected?.id ? "project-list-active" : ""}`} key={project.id} onClick={() => setSelectedId(project.id)}><span className="project-list-icon"><FlaskConical size={14} /></span><span><strong>{project.title}</strong><small>{project.week ? `Week ${project.week}` : "Independent"} · {project.milestones.filter((m) => m.done).length}/{project.milestones.length} milestones</small></span><span className={`project-status status-${project.status}`}>{project.status.replace("_", " ")}</span></button>)}
           {!projects.length && <div className="empty-state project-empty"><FlaskConical size={28} /><p>No projects yet. Create one to track experiments, repositories, and reflections.</p></div>}
@@ -330,7 +361,7 @@ export function ProjectLab() {
       <div className="capstone-checklist">{capstoneItems.map((item, index) => <label key={item}><input type="checkbox" checked={capstone[index]} onChange={() => updateCapstone(index)} /><span className="project-milestone-check">{capstone[index] && <Check size={10} />}</span>{item}</label>)}</div>
     </Panel>
 
-    <div className="peer-review-notice"><span><Sparkles size={16} /></span><div><strong>{cloudReady ? "Society review & feedback" : "Peer review and sharing"}</strong><p>{cloudReady ? "Your approved account can sync projects to the society workspace. Submit work for administrator review and keep reflections tied to evidence." : cloudStatusText}</p></div><span className={`peer-review-state ${cloudReady ? "peer-review-state-ready" : ""}`}>{cloudReady ? "Cloud access ready" : (signedIn ? "Approval required" : "Sign-in required")}</span></div>
+    <div className="peer-review-notice"><span><Sparkles size={16} /></span><div><strong>{cloudReady ? "Society review & feedback" : "Local work, optional society sharing"}</strong><p>{cloudReady ? "Your approved account can sync projects to the society workspace. Submit work for administrator review and keep reflections tied to evidence." : cloudStatusText}</p></div><span className={`peer-review-state ${cloudReady ? "peer-review-state-ready" : ""}`}>{cloudReady ? "Society sync ready" : "Saved locally"}</span></div>
     </>}
 
     {labMode === "analyze" && <>
@@ -357,6 +388,16 @@ export function ProjectLab() {
           <li>Use the guided questions below to record architecture, math, algorithms, important files, and findings.</li>
         </ol>
         <p className="module-muted">This web app can’t execute arbitrary repositories on the server, but it gives you a workspace to organize and document your local analysis.</p>
+      </div>
+      <div className="analysis-suggestions">
+        <h3>Suggested repositories to analyze</h3>
+        <p className="module-muted">Great starting points for practice. Create a workspace, clone locally, and explore.</p>
+        <div className="analysis-suggestion-list">
+          {suggestedAnalyzeRepos.map((repo) => <div key={repo.url} className="analysis-suggestion-item">
+            <a href={repo.url} target="_blank" rel="noreferrer"><strong>{repo.title}</strong><small>{repo.note}</small></a>
+            <button className="small-outline-button" onClick={() => startSuggestedAnalysis(repo)}><Plus size={13} /> Analyze</button>
+          </div>)}
+        </div>
       </div>
     </Panel>
 

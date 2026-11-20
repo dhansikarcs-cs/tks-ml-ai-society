@@ -94,7 +94,7 @@ export function ModuleShell({
           <div className="module-top-actions"><ThemeToggle className="module-theme-toggle" />{signedIn ? <button className="module-login-link" onClick={signOut}><LogOut size={15} /> Sign out</button> : <Link href="/login" className="module-login-link"><LogIn size={15} /> Sign in</Link>}<span className="profile-avatar">{initials}</span></div>
         </header>
         <main className="module-content">
-          {!cloudConfigured && <div className="local-mode-banner"><span className="local-status" /><span><strong>Local workspace</strong> · Changes are stored in this browser. Configure Supabase for secure accounts and member access.</span><Link href="/login">Set up cloud access <ArrowLeft size={13} /></Link></div>}
+          {!cloudConfigured && <div className="local-mode-banner"><span className="local-status" /><span><strong>Local workspace</strong> · Your learning, notes, and projects are saved on this device. Optional cloud accounts/sync can be enabled for society access.</span><Link href="/login">Account & sync options <ArrowLeft size={13} /></Link></div>}
           <div className="module-page-heading"><div className="module-page-icon"><Icon size={19} /></div><div><p>LEARNING WORKSPACE</p><h1>{title}</h1><span>{description}</span></div>{actions && <div className="module-page-actions">{actions}</div>}</div>
           {children}
           <footer className="module-footer"><span>Learning is a practice, not a race.</span><Link href="/">Back to overview</Link></footer>

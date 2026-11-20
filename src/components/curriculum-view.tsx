@@ -217,11 +217,19 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     ...(week.coding[0] ? [`Turn coding practice into a mini-project: ${week.coding[0]}.`] : []),
   ];
   const analyzeIdeas = [
-    `Analyze a repository or notebook related to "${week.title}" (search GitHub for ${week.topics[0] || week.build}); identify architecture, key algorithms, and how results are evaluated.`,
+    `Analyze a repository or notebook related to "${week.title}"; identify architecture, key algorithms, data flow, and how results are evaluated.`,
     `Compare two approaches to ${week.topics[1] || week.topics[0] || "this topic"}: what trade-offs do they make?`,
     `Run or trace the week’s build and write an error/limitation analysis: where does it fail and why?`,
     ...(week.paper ? [`Read and summarize the paper: ${week.paper}. What problem, method, evidence, and limitations?`] : [`Find one short article/paper on ${week.topics[0] || week.title} and summarize its main claim and evidence.`]),
   ];
+  const repoSuggestions = [
+    ...week.resources.filter((r) => r.kind === "Repository"),
+    ...[
+      { title: "scikit-learn/scikit-learn", url: "https://github.com/scikit-learn/scikit-learn", kind: "Repository" as const, note: "Classical ML algorithms and API design." },
+      { title: "pytorch/examples", url: "https://github.com/pytorch/examples", kind: "Repository" as const, note: "Reference implementations of common models." },
+      { title: "karpathy/micrograd", url: "https://github.com/karpathy/micrograd", kind: "Repository" as const, note: "Tiny autograd engine — great for learning." },
+    ].filter((r) => !week.resources.some((w) => w.url === r.url)),
+  ].slice(0, 6);
 
   return <article className="week-detail-card">
     <div className="week-detail-top"><div><span className="week-detail-kicker">MONTH {String(week.phase).padStart(2, "0")} <span>·</span> WEEK {String(week.week).padStart(2, "0")}</span><h2>{week.title}</h2><p>{week.summary}</p></div><div className="week-completion-badge"><strong>{completedItems}/{checklist.length}</strong><small>steps</small></div></div>
@@ -249,7 +257,7 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
       <section className="detail-section assignment-box"><div><span>WEEKLY BUILD</span><h3>{week.build}</h3><p>{week.assignment}</p></div><Link className="small-outline-button" href={`/projects?week=${week.week}`}>Open project lab <ArrowRight size={14} /></Link></section>
       <div className="week-checklist"><div><h3>Your weekly checklist</h3><span>{completedItems} of {checklist.length} complete</span></div>{checklist.map((item) => <label key={item.id} className="curriculum-check-row"><input type="checkbox" checked={Boolean(progress[`week-${week.week}-${item.id}`])} onChange={(event) => setItem(`week-${week.week}-${item.id}`, event.target.checked)} /><span className="curriculum-check-visual">{progress[`week-${week.week}-${item.id}`] && <Check size={12} />}</span><span><strong>{item.title}</strong><small>{item.meta}</small></span></label>)}</div>
       <button className={`complete-week-button ${weekDone ? "week-is-complete" : ""}`} onClick={toggleWeek}>{weekDone ? <><CheckCircle2 size={16} /> Week marked complete</> : <>Mark week complete <ArrowRight size={15} /></>}</button>
-      <p className="progress-save-note">Progress is saved in this browser and synced for approved members when cloud access is available.</p>
+      <p className="progress-save-note">Progress is saved locally in this browser and can sync for approved members when signed in.</p>
     </div>}
 
     {detailTab === "resources" && <div className="week-detail-content"><div className="detail-section"><h3>Curated for week {week.week}</h3><p className="module-muted">External resources open in a new tab. Some courses may require enrollment or payment.</p><div className="week-resource-list">{week.resources.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title}</strong><small>{resource.kind}{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div><Link href={`/resources?week=${week.week}`} className="inline-module-link">Browse the full resource library <ArrowRight size={14} /></Link></div></div>}
@@ -259,11 +267,12 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     {detailTab === "ideas" && <div className="week-detail-content">
       <section className="detail-section"><h3><Lightbulb size={15} /> What to build this week (ideas & examples)</h3><ul className="idea-list">{buildIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href={`/projects?week=${week.week}`}>Start building in Project lab <ArrowRight size={14} /></Link></section>
       <section className="detail-section"><h3><Search size={15} /> How to analyze (ideas & examples)</h3><ul className="idea-list">{analyzeIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href="/projects">Open repo analysis workspace <ArrowRight size={14} /></Link></section>
+      <section className="detail-section"><h3>Suggested repositories to analyze</h3><p className="module-muted">Pick a repo, clone it locally, run/read it, and document your findings in the Project lab analysis workspace.</p><div className="week-resource-list">{repoSuggestions.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title}</strong><small>Repository{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div></section>
       <section className="detail-section suggest-section"><h3>Suggest an addition to this week’s curriculum</h3><p className="module-muted">Have a great video, note, resource, or idea that should be added for everyone? Send it to the administrator for review.</p>
         <label className="suggest-field">Subject (optional)<input value={suggestSubject} onChange={(e) => setSuggestSubject(e.target.value)} placeholder={`e.g. Add video/resource for Week ${week.week}`} /></label>
         <label className="suggest-field">Your suggestion<textarea value={suggestBody} onChange={(e) => setSuggestBody(e.target.value)} rows={4} placeholder="Describe the resource, link, note, or idea and why it helps this week…" /></label>
         <button className="primary-button module-action-button" disabled={suggestBusy || !isSupabaseConfigured()} onClick={() => void submitSuggestion()}><Send size={14} /> {suggestBusy ? "Sending…" : "Send suggestion to admin"}</button>
-        {!isSupabaseConfigured() && <p className="module-muted">Sign-in and cloud access are required to send suggestions.</p>}
+        {!isSupabaseConfigured() && <p className="module-muted">Sign in with an approved member account to send suggestions to the admin (optional society feature).</p>}
         {suggestMsg && <p className="module-status-message" role="status">{suggestMsg}</p>}
       </section>
     </div>}

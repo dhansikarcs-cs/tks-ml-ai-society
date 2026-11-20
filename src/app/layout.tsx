@@ -6,6 +6,7 @@ import "./theme-light.css";
 import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/lib/theme";
 import { themeInitScript } from "@/lib/theme-script";
+import { ActivityTimer } from "@/components/activity-timer";
 
 export const metadata: Metadata = {
   title: "TKS Society — Learning workspace",
@@ -19,7 +20,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <ActivityTimer />
+        </ThemeProvider>
       </body>
     </html>
   );

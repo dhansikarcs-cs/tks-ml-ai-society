@@ -25,6 +25,8 @@
 * { box-sizing: border-box; }
 html { min-width: 320px; background: var(--bg); }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: "DM Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body:has(.activity-timer-open) { padding-bottom: 170px; }
+body:has(.activity-timer-collapsed .activity-timer-fab) { padding-bottom: 56px; }
 button, input { font: inherit; }
 button { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #a99af5; outline-offset: 3px; }
