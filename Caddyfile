@@ -1,0 +1,8 @@
+tks-ml-society.tech {
+    reverse_proxy app:3000
+}
+
+# Uncomment after adding a DNS A record for www -> 189.31.34.138
+# www.tks-ml-society.tech {
+#     redir https://tks-ml-society.tech{uri} permanent
+# }
