@@ -23,9 +23,9 @@ const promptIdeas = [
 
 const defaultProvider: CustomProvider = {
   mode: "server",
-  url: "https://api.x.ai/v1/chat/completions",
+  url: "https://api.groq.com/openai/v1/chat/completions",
   key: "",
-  model: "grok-2-latest",
+  model: "llama-3.3-70b-versatile",
 };
 
 function loadProvider(): CustomProvider {
@@ -176,14 +176,16 @@ export function AssistantView() {
             <button type="button" className={provider.mode === "server" ? "provider-mode-active" : ""} onClick={() => updateProvider({ ...provider, mode: "server" })}><Server size={13} /> Society server</button>
             <button type="button" className={provider.mode === "custom" ? "provider-mode-active" : ""} onClick={() => updateProvider({ ...provider, mode: "custom" })}><KeyRound size={13} /> Custom / local</button>
           </div>
-          {provider.mode === "server" ? <p className="provider-help">Uses the server-configured provider. Requires cloud sign-in, an approved membership, and server-side AI credentials.</p> : <div className="provider-fields">
-            <p className="provider-help">Use your own OpenAI-compatible API (e.g. Grok/xAI, OpenAI, OpenRouter) or a local server (e.g. Ollama). Settings are stored only in this browser; requests go directly from your browser to the endpoint.</p>
+          {provider.mode === "server" ? <p className="provider-help">Uses the server-configured provider (shared for approved members). Requires cloud sign-in, an approved membership, and server-side AI credentials set in Vercel/env. If not configured, switch to <strong>Custom / local</strong> to use your own key or a local model.</p> : <div className="provider-fields">
+            <p className="provider-help">Bring your own OpenAI-compatible API or run a local model. Settings are stored <strong>only in this browser</strong> and requests go directly from your browser to the endpoint — your key/usage stays private to you. For local AI, install <a href="https://ollama.com" target="_blank" rel="noreferrer">Ollama</a> and run a model (e.g. <code>ollama run llama3.2</code>); browser calls to localhost may require allowing CORS.</p>
             <label>API endpoint<input value={provider.url} onChange={(e) => updateProvider({ ...provider, url: e.target.value })} placeholder="https://api.x.ai/v1/chat/completions" /></label>
             <label>API key <small>(optional for some local servers)</small><input type="password" value={provider.key} onChange={(e) => updateProvider({ ...provider, key: e.target.value })} placeholder="Paste your key" autoComplete="off" /></label>
             <label>Model<input value={provider.model} onChange={(e) => updateProvider({ ...provider, model: e.target.value })} placeholder="grok-2-latest" /></label>
             <div className="provider-presets">
+              <button type="button" className="text-button" onClick={() => updateProvider({ ...provider, mode: "custom", url: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.3-70b-versatile" })}>Use Groq (free tier)</button>
               <button type="button" className="text-button" onClick={() => updateProvider({ ...provider, mode: "custom", url: "https://api.x.ai/v1/chat/completions", model: "grok-2-latest" })}>Use Grok (xAI)</button>
               <button type="button" className="text-button" onClick={() => updateProvider({ ...provider, mode: "custom", url: "http://localhost:11434/v1/chat/completions", model: "llama3.2", key: "" })}>Use local Ollama</button>
+              <button type="button" className="text-button" onClick={() => updateProvider({ ...provider, mode: "custom", url: "https://openrouter.ai/api/v1/chat/completions", model: "meta-llama/llama-3.3-70b-instruct:free" })}>Use OpenRouter (free)</button>
             </div>
           </div>}
         </div>}

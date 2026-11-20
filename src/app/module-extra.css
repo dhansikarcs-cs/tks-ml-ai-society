@@ -216,3 +216,99 @@
 @media (max-width: 650px) {
   .admin-weight-form { grid-template-columns: 1fr; }
 }
+/* Login form additions */
+.account-brand-mini { display: inline-flex; align-items: center; gap: 8px; color: #bdbdc4; font-size: 12px; font-weight: 600; }
+.affiliation-fieldset { border: 1px solid #35363b; border-radius: 8px; padding: 10px; margin: 0; }
+.affiliation-fieldset legend { padding: 0 6px; color: #c9c8cf; font-size: 12px; font-weight: 600; }
+.affiliation-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.affiliation-option { display: flex; align-items: flex-start; gap: 8px; padding: 10px; border: 1px solid #35363b; border-radius: 8px; background: #1b1c1f; cursor: pointer; }
+.affiliation-option input { margin-top: 2px; accent-color: #a496ef; }
+.affiliation-option span { display: flex; flex-direction: column; gap: 3px; }
+.affiliation-option strong { color: #e1e0e6; font-size: 12px; }
+.affiliation-option small { color: #91919a; font-size: 11px; line-height: 1.4; }
+.affiliation-option.affiliation-active { border-color: #5a4d78; background: #252238; }
+.field-optional { color: #8b8b94; font-weight: 400; font-size: 11px; }
+@media (max-width: 520px) { .affiliation-options { grid-template-columns: 1fr; } }
+
+/* Mobile readability & layout improvements */
+@media (max-width: 650px) {
+  .app-frame, .module-frame { font-size: 14px; }
+  .welcome-row h1 { font-size: 24px; line-height: 1.2; }
+  .welcome-subtitle { font-size: 14px; max-width: none; }
+  .hero-card { min-height: auto; padding: 20px 16px 56px; }
+  .hero-content h2 { font-size: 22px; max-width: none; }
+  .hero-description { font-size: 14px; max-width: none; }
+  .hero-meta { font-size: 12px; }
+  .hero-meta-level { display: inline-flex !important; }
+  .hero-week-tag { font-size: 10px; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .hours-stat { grid-column: auto; }
+  .stat-card { min-height: auto; padding: 14px; }
+  .stat-main strong { font-size: 26px; }
+  .stat-caption, .stat-foot, .stat-trend { font-size: 12px; }
+  .section-heading h3, .rail-section-title h3 { font-size: 16px; }
+  .section-heading p, .rail-section-title p { font-size: 13px; }
+  .text-button, .inline-link { font-size: 13px; }
+  .focus-copy h4 { font-size: 15px; }
+  .focus-copy p { font-size: 13px; max-width: none; }
+  .milestone-row { min-height: 40px; font-size: 13px; }
+  .upcoming-copy h4 { font-size: 13px; }
+  .upcoming-type, .upcoming-copy p { font-size: 12px; }
+  .upcoming-copy { flex-direction: column; align-items: flex-start; }
+  .upcoming-copy p { display: block; }
+  .rail-card-heading h3 { font-size: 15px; }
+  .rail-eyebrow { font-size: 11px; }
+  .target-numbers strong { font-size: 22px; }
+  .target-numbers > span, .target-foot, .target-note { font-size: 12px; }
+  .resource-copy strong { font-size: 13px; white-space: normal; }
+  .resource-copy small { font-size: 12px; white-space: normal; }
+  .shelf-link { font-size: 13px; }
+  .announcement-card h3 { font-size: 14px; }
+  .announcement-card p, .announcement-card button { font-size: 13px; }
+  .privacy-note { font-size: 12px; }
+  .page-footer, .module-footer { font-size: 12px; flex-direction: column; gap: 6px; text-align: center; }
+  .module-content { width: calc(100% - 24px); }
+  .page-content { width: calc(100% - 24px); }
+  .module-page-heading { flex-wrap: wrap; }
+  .module-page-heading h1 { font-size: 22px; }
+  .module-page-heading > div > span { font-size: 14px; max-width: none; }
+  .module-panel-heading h2 { font-size: 16px; }
+  .module-panel-heading p, .module-muted { font-size: 13px; }
+  .small-outline-button, .module-action-button { min-height: 36px; font-size: 13px; padding: 0 12px; }
+  .nav-item { height: 40px; font-size: 14px; }
+  .module-nav-link { min-height: 40px; font-size: 14px; }
+  .account-card { padding: 20px; }
+  .account-card h1 { font-size: 24px; }
+  .account-card > p:not(.account-eyebrow) { font-size: 14px; }
+  .account-form label { font-size: 13px; }
+  .account-form input { min-height: 42px; font-size: 15px; }
+  .account-primary, .account-secondary { min-height: 42px; font-size: 14px; }
+  .pending-status-item strong { font-size: 13px; }
+  .pending-status-item small, .pending-note p { font-size: 13px; }
+}
+@media (min-width: 1400px) {
+  .page-content, .module-content { width: min(1560px, calc(100% - 80px)); }
+}
+@media (min-width: 1800px) {
+  .page-content, .module-content { width: min(1680px, calc(100% - 120px)); }
+}
+/* Help center */
+.help-layout { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.2fr); gap: 14px; align-items: start; }
+.help-form textarea { min-height: 140px; }
+.help-request-list { display: flex; flex-direction: column; gap: 10px; }
+.help-request-card { padding: 12px; border: 1px solid #303136; border-radius: 8px; background: #1b1c1f; }
+.help-request-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.help-request-meta { color: #83848b; font-size: 12px; }
+.help-request-card > strong { display: block; color: #e4e3e8; font-size: 14px; margin-bottom: 6px; }
+.help-request-card > p { margin: 0; color: #a8a8af; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+.help-admin-reply { display: flex; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid #3b3547; border-radius: 6px; background: #211f27; color: #b7b2c2; }
+.help-admin-reply svg { flex: 0 0 14px; color: #b9aaf0; margin-top: 2px; }
+.help-admin-reply small { display: block; color: #9f95c4; font-size: 11px; margin-bottom: 3px; }
+.help-admin-reply p { margin: 0; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+.help-admin-card .submission-review-actions { flex-wrap: wrap; }
+@media (max-width: 850px) { .help-layout { grid-template-columns: 1fr; } }
+[data-theme="light"] .help-request-card { border-color: #e0dced; background: #fff; }
+[data-theme="light"] .help-request-meta { color: #6a6875; }
+[data-theme="light"] .help-request-card > strong { color: #2f2b3d; }
+[data-theme="light"] .help-request-card > p { color: #4a4757; }
+[data-theme="light"] .help-admin-reply { border-color: #d7ccef; background: #f6f3fc; color: #4a4757; }

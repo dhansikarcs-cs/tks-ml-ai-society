@@ -294,7 +294,7 @@ export function ProjectLab() {
       <div><span className="project-overview-icon"><FlaskConical size={17} /></span><span><strong>Build by understanding</strong><small>Projects connect each week&apos;s theory to practice.</small></span></div>
       <div className="project-lab-count"><strong>{projects.length}</strong><span>local projects</span></div>
     </div>
-    {creating && <Panel title="Start a project" description="Create a local workspace. You can add a repository and milestones anytime.">
+    {creating && <Panel title="Start a project" description="Create a project workspace. You can add a repository and milestones anytime.">
       <form className="new-project-form" onSubmit={create}>
         <label>Project name<input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} required placeholder="e.g. PCA visual explorer" /></label>
         <label>Related curriculum week<select value={newWeek} onChange={(event) => setNewWeek(event.target.value)}><option value="">Personal project</option>{curriculum.map((week) => <option key={week.week} value={week.week}>Week {week.week}: {week.title}</option>)}</select></label>

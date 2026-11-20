@@ -31,7 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import type { CurriculumWeek } from "@/lib/curriculum";
 import { readLocal, type StudySession } from "@/lib/local-data";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCurriculumData } from "@/lib/use-curriculum";
 import { loadProgress, persistProgressItem } from "@/lib/progress";
 import { ThemeToggle } from "@/lib/theme";
@@ -128,7 +128,7 @@ export default function Dashboard() {
   }, []);
 
   const showComingSoon = (section: string) => {
-    setNotice(`${section} is not connected to a cloud account in this local workspace.`);
+    setNotice(`${section} isn’t available here yet.`);
     window.setTimeout(() => setNotice(""), 3200);
   };
 
@@ -194,7 +194,7 @@ export default function Dashboard() {
 
         <button className="workspace-switch" onClick={() => showComingSoon("Workspace switcher")}>
           <span className="workspace-avatar">T</span>
-          <span className="workspace-copy"><strong>Learning workspace</strong><small>Local workspace</small></span>
+          <span className="workspace-copy"><strong>Learning workspace</strong><small>{isSupabaseConfigured() ? "Society member" : "Local workspace"}</small></span>
           <ChevronDown size={15} className="muted-icon" />
         </button>
 
@@ -230,10 +230,10 @@ export default function Dashboard() {
             <div className="week-mini-foot"><span>{currentWeek.title}</span><span>{curriculumPercent}%</span></div>
           </div>
           <button className="nav-item" onClick={() => window.location.assign("/login")}><Settings2 size={17} /><span>Account &amp; sync</span></button>
-          <button className="nav-item" onClick={() => showComingSoon("Help center")}><CircleHelp size={17} /><span>Help center</span></button>
+          <button className="nav-item" onClick={() => window.location.assign("/help")}><CircleHelp size={17} /><span>Help center</span></button>
           <div className="profile-row">
             <div className="profile-avatar">{memberInitials}</div>
-            <div className="profile-copy"><strong>{memberName}</strong><small>{memberName === "Learner" ? "Local workspace" : "Society member"}</small></div>
+            <div className="profile-copy"><strong>{memberName}</strong><small>{isSupabaseConfigured() ? "Society member" : "Local workspace"}</small></div>
             <button className="icon-button profile-menu" onClick={() => void handleAccountAction()} aria-label="Account and sign out"><MoreHorizontal size={18} /></button>
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function Dashboard() {
         )}
 
         <div className="page-content">
-          <div className="preview-notice"><span className="preview-indicator" /> LOCAL WORKSPACE <span className="preview-divider">·</span> Your progress and focus sessions are saved in this browser. Cloud membership is optional.</div>
+          <div className="preview-notice"><span className="preview-indicator" /> {isSupabaseConfigured() ? "MEMBER WORKSPACE" : "LOCAL WORKSPACE"} <span className="preview-divider">·</span> {isSupabaseConfigured() ? "Signed in with secure member access. Your progress and focus sessions are saved on this device and can sync when available." : "Your progress and focus sessions are saved in this browser on this device."}</div>
           <div className="welcome-row">
             <div>
               <div className="eyebrow"><span className="status-dot" /> {todayLabel}</div>
@@ -386,7 +386,7 @@ export default function Dashboard() {
               </article>
 
               {lastAchievement && <div className="dashboard-achievement"><span><Award size={16} /></span><div><small>LAST MILESTONE</small><strong>{lastAchievement.title}</strong><p>Earned {new Date(lastAchievement.earnedAt).toLocaleDateString()}</p></div><button onClick={() => window.location.assign("/leaderboard")} aria-label="View achievements"><ArrowRight size={14} /></button></div>}
-              <div className="privacy-note"><span className="privacy-lock">◈</span><span>Your learning time is an estimate of activity, not attention. <button onClick={() => showComingSoon("Learning analytics privacy")}>How it works</button></span></div>
+              <div className="privacy-note"><span className="privacy-lock">◈</span><span>Your learning time is an estimate of activity, not attention. <button onClick={() => window.location.assign("/analytics")}>How it works</button></span></div>
             </aside>
           </section>
           <footer className="page-footer"><span>Built for curious minds.</span><span>Take it one concept at a time <span className="footer-spark">✳</span></span></footer>
@@ -404,7 +404,7 @@ export default function Dashboard() {
               <div className="lesson-section"><h3>Why it matters</h3><p>{currentWeek.activity}</p></div>
               <div className="lesson-equation">{currentWeek.mathematics[0]}</div>
               <div className="lesson-section"><h3>Learning objectives</h3><ul>{currentWeek.objectives.slice(0, 4).map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
-              <div className="drawer-bottom"><span><Clock3 size={14} /> Review progress saved on this device</span><button className="primary-button" onClick={() => { if (!progress[`week-${currentWeek.week}-lesson`]) toggleProgress(`week-${currentWeek.week}-lesson`); setShowLesson(false); window.location.assign(`/curriculum?week=${currentWeek.week}`); }}>{progress[`week-${currentWeek.week}-lesson`] ? "Open this week" : "Mark reviewed & continue"} <ArrowRight size={15} /></button></div>
+              <div className="drawer-bottom"><span><Clock3 size={14} /> {isSupabaseConfigured() ? "Progress saved to your account and this device" : "Review progress saved on this device"}</span><button className="primary-button" onClick={() => { if (!progress[`week-${currentWeek.week}-lesson`]) toggleProgress(`week-${currentWeek.week}-lesson`); setShowLesson(false); window.location.assign(`/curriculum?week=${currentWeek.week}`); }}>{progress[`week-${currentWeek.week}-lesson`] ? "Open this week" : "Mark reviewed & continue"} <ArrowRight size={15} /></button></div>
         </section>
       </div>}
 

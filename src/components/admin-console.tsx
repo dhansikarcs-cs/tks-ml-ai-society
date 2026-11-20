@@ -11,6 +11,7 @@ type Submission = { id: string; user_id: string; assignment_id: string; response
 type AdminResource = { id: string; week_id: number | null; title: string; url: string; kind: string; note: string | null };
 type AdminStats = { approved_members: number; active_members_7d: number; active_seconds_7d: number; pending_reviews: number; published_assignments: number };
 type AdminProject = { id: string; user_id: string; week_id: number | null; title: string; description: string; repository_url: string | null; reflection: string; status: string; updated_at: string };
+type SupportRequest = { id: string; user_id: string; category: string; subject: string; message: string; status: "open" | "in_progress" | "resolved"; admin_note: string | null; created_at: string };
 
 export function AdminConsole() {
   const [state, setState] = useState<"loading" | "setup" | "signed-out" | "pending" | "denied" | "ready" | "error">("loading");
@@ -19,7 +20,7 @@ export function AdminConsole() {
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [assignmentTitles, setAssignmentTitles] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"members" | "submissions" | "content" | "analytics">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "submissions" | "content" | "analytics" | "support">("members");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [resources, setResources] = useState<AdminResource[]>([]);
@@ -31,6 +32,8 @@ export function AdminConsole() {
   const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, string>>({});
   const [peerSelections, setPeerSelections] = useState<Record<string, string>>({});
   const [projectFeedbackDrafts, setProjectFeedbackDrafts] = useState<Record<string, string>>({});
+  const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
+  const [supportNotes, setSupportNotes] = useState<Record<string, string>>({});
 
   const loadAdmin = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -41,7 +44,7 @@ export function AdminConsole() {
     if (profileError) { setState("error"); setMessage(profileError.message); return; }
     if (!own || own.membership_state !== "approved") { setState("pending"); return; }
     if (own.role !== "admin") { setState("denied"); return; }
-    const [{ data: memberRows, error: membersError }, { data: submissionRows }, { data: assignments }, { data: resourceRows }, { data: statRows }, { data: settings }, { data: curriculumRows }, { data: projectRows }] = await Promise.all([
+    const [{ data: memberRows, error: membersError }, { data: submissionRows }, { data: assignments }, { data: resourceRows }, { data: statRows }, { data: settings }, { data: curriculumRows }, { data: projectRows }, { data: supportRows }] = await Promise.all([
       supabase.from("profiles").select("id,email,display_name,role,membership_state,created_at").order("created_at", { ascending: false }),
       supabase.from("submissions").select("id,user_id,assignment_id,response,repository_url,status,submitted_at").in("status", ["submitted", "in_review", "reviewed"]).order("submitted_at", { ascending: false }),
       supabase.from("assignments").select("id,title"),
@@ -50,6 +53,7 @@ export function AdminConsole() {
       supabase.from("leaderboard_settings").select("weights,enabled").eq("singleton", true).maybeSingle(),
       supabase.from("curriculum_weeks").select("id,title,summary,content"),
       supabase.from("projects").select("id,user_id,week_id,title,description,repository_url,reflection,status,updated_at").order("updated_at", { ascending: false }),
+      supabase.from("support_requests").select("id,user_id,category,subject,message,status,admin_note,created_at").order("created_at", { ascending: false }),
     ]);
     if (membersError) { setState("error"); setMessage(membersError.message); return; }
     setProfiles((memberRows ?? []) as Profile[]);
@@ -58,6 +62,7 @@ export function AdminConsole() {
     setAssignmentTitles(Object.fromEntries((assignments ?? []).map((item) => [item.id, item.title])));
     setResources((resourceRows ?? []) as AdminResource[]);
     setStats((statRows ?? null) as AdminStats | null);
+    setSupportRequests((supportRows ?? []) as SupportRequest[]);
     if (settings?.weights) setLeaderboardWeights((current) => ({ ...current, ...(settings.weights as typeof current) }));
     if (settings) setLeaderboardEnabled(settings.enabled);
     const selected = curriculumRows?.find((row) => Number(row.id) === selectedWeek);
@@ -284,18 +289,29 @@ export function AdminConsole() {
     setMessage(`Submission marked ${action.replace("_", " ")}.`);
   }
 
+  async function updateSupportRequest(request: SupportRequest, status: SupportRequest["status"]) {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+    const admin_note = (supportNotes[request.id] ?? request.admin_note ?? "").trim() || null;
+    const { error } = await supabase.from("support_requests").update({ status, admin_note }).eq("id", request.id);
+    if (error) return setMessage(error.message);
+    setSupportRequests((current) => current.map((item) => item.id === request.id ? { ...item, status, admin_note } : item));
+    setMessage(`Support request marked ${status.replace("_", " ")}.`);
+  }
+
   const filteredProfiles = useMemo(() => profiles.filter((profile) => `${profile.display_name} ${profile.email} ${profile.membership_state} ${profile.role}`.toLowerCase().includes(query.toLowerCase())), [profiles, query]);
   const pendingCount = profiles.filter((profile) => profile.membership_state === "pending").length;
+  const openSupportCount = supportRequests.filter((request) => request.status !== "resolved").length;
 
   return <ModuleShell title="Administration" description="Secure member, learning-content, and submission management." icon={ShieldCheck}>
     {state !== "ready" ? <div className="admin-access-card">
       <span className="admin-access-icon">{state === "loading" ? <ShieldCheck size={22} /> : state === "denied" ? <CircleAlert size={22} /> : <ShieldCheck size={22} />}</span>
       <h2>{state === "loading" ? "Checking administrator access…" : state === "setup" ? "Cloud administration needs setup" : state === "signed-out" ? "Sign in to administer" : state === "pending" ? "Membership approval required" : state === "denied" ? "Administrator role required" : "Could not load admin workspace"}</h2>
-      <p>{state === "setup" ? "Add Supabase project credentials, apply the database migration, and sign in with a profile that has the administrator role. The local workspace does not simulate admin permissions." : state === "signed-out" ? "Administrative operations require a real authenticated account and server-enforced administrator role." : state === "denied" ? "Your account is not an approved administrator. Member and administrator data is protected by database row-level security." : state === "pending" ? "Your membership needs approval before protected society data is available." : message}</p>
+      <p>{state === "setup" ? "Add Supabase project credentials, apply the database migration, and sign in with an approved administrator account. Administrative access requires a real server-enforced role." : state === "signed-out" ? "Administrative operations require a signed-in, approved administrator account." : state === "denied" ? "Your account is not an approved administrator. Member and administrator data is protected by database row-level security." : state === "pending" ? "Your membership needs administrator approval before protected society data is available." : message}</p>
       {state === "setup" || state === "signed-out" ? <a className="primary-button module-action-button" href="/login">Account setup <ShieldCheck size={14} /></a> : null}
     </div> : <>
-      <div className="admin-metrics"><div><span><Users size={16} /></span><strong>{profiles.length}</strong><small>Members</small></div><div><span><CircleAlert size={16} /></span><strong>{pendingCount}</strong><small>Awaiting approval</small></div><div><span><ClipboardList size={16} /></span><strong>{submissions.filter((item) => ["submitted", "in_review"].includes(item.status)).length}</strong><small>Submissions to review</small></div></div>
-      <div className="admin-tabs">{(["members", "submissions", "content", "analytics"] as const).map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? "admin-tab-active" : ""}>{tab === "members" ? "Members" : tab === "submissions" ? "Submissions" : tab === "content" ? "Curriculum & updates" : "Society analytics"}</button>)}</div>
+      <div className="admin-metrics"><div><span><Users size={16} /></span><strong>{profiles.length}</strong><small>Members</small></div><div><span><CircleAlert size={16} /></span><strong>{pendingCount}</strong><small>Awaiting approval</small></div><div><span><ClipboardList size={16} /></span><strong>{submissions.filter((item) => ["submitted", "in_review"].includes(item.status)).length + openSupportCount}</strong><small>Reviews &amp; open requests</small></div></div>
+      <div className="admin-tabs">{(["members", "submissions", "content", "analytics", "support"] as const).map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? "admin-tab-active" : ""}>{tab === "members" ? "Members" : tab === "submissions" ? "Submissions" : tab === "content" ? "Curriculum & updates" : tab === "analytics" ? "Society analytics" : `Support (${openSupportCount})`}</button>)}</div>
       {activeTab === "members" && <Panel title="Member management" description="Approve membership requests and manage access. Role changes require confirmation.">
         <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search members…" /></label>
         <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Member</th><th>Status</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead><tbody>{filteredProfiles.map((profile) => <tr key={profile.id}><td><strong>{profile.display_name || "Member"}</strong><small>{profile.email}</small></td><td><span className={`member-state member-${profile.membership_state}`}>{profile.membership_state}</span></td><td><select value={profile.role as "member" | "admin"} onChange={(event) => void changeRole(profile, event.target.value as "member" | "admin")} aria-label={`Change role for ${profile.display_name}`}><option value="member">Member</option><option value="admin">Admin</option></select></td><td>{new Date(profile.created_at).toLocaleDateString()}</td><td>{profile.membership_state === "pending" ? <div className="admin-row-actions"><button onClick={() => void setMembership(profile, "approved")} disabled={busy}><Check size={13} /> Approve</button><button onClick={() => void setMembership(profile, "denied")} disabled={busy}><X size={13} /> Deny</button></div> : profile.membership_state === "denied" ? <button className="admin-row-text-button" onClick={() => void setMembership(profile, "approved")}>Reinstate</button> : <span className="admin-current-status">Active</span>}</td></tr>)}</tbody></table></div>
@@ -350,6 +366,17 @@ export function AdminConsole() {
       </Panel><Panel title="AI assistant configuration" description="Provider secrets must remain server-side and never be stored in browser settings.">
         <div className="admin-ai-setup"><span className="assistant-config-badge">Environment configuration</span><p>Set <code>AI_API_URL</code>, <code>AI_API_KEY</code>, and <code>AI_MODEL</code> on the server. Also configure Supabase auth and apply the database migration. The assistant stays unavailable until all are present.</p><span>See the repository&apos;s <code>.env.example</code> and README.</span></div>
       </Panel></div>}
+      {activeTab === "support" && <Panel title="Help center requests" description="Private member requests for help, bug reports, and complaints. Only administrators can view and respond.">
+        {supportRequests.length ? <div className="submission-review-list">{supportRequests.map((request) => {
+          const member = profiles.find((profile) => profile.id === request.user_id);
+          return <article className="submission-review-card help-admin-card" key={request.id}>
+            <div className="submission-review-heading"><div><strong>{request.subject}</strong><small>{member?.display_name || member?.email || `Member ${request.user_id.slice(0, 8)}`} · {request.category} · {new Date(request.created_at).toLocaleString()}</small></div><span className={`member-state member-${request.status === "resolved" ? "approved" : request.status === "in_progress" ? "pending" : "denied"}`}>{request.status.replace("_", " ")}</span></div>
+            <p>{request.message}</p>
+            <label className="admin-feedback-field">Admin response / internal note<textarea rows={2} value={supportNotes[request.id] ?? request.admin_note ?? ""} onChange={(event) => setSupportNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Reply or add a note visible to the member…" /></label>
+            <div className="submission-review-actions"><button onClick={() => void updateSupportRequest(request, "in_progress")}>Mark in progress</button><button onClick={() => void updateSupportRequest(request, "resolved")}>Save &amp; mark resolved</button><button onClick={() => void updateSupportRequest(request, "open")}>Reopen</button></div>
+          </article>;
+        })}</div> : <div className="admin-table-empty">No support requests yet.</div>}
+      </Panel>}
       {message && <p className="module-status-message" role="status">{message}</p>}
     </>}
   </ModuleShell>;
