@@ -35,14 +35,6 @@ import { useCurriculumData } from "@/lib/use-curriculum";
 import { loadProgress, persistProgressItem } from "@/lib/progress";
 import { ThemeToggle } from "@/lib/theme";
 
-const navigation = [
-  { label: "Overview", icon: LayoutDashboard, active: true, href: "/" },
-  { label: "Curriculum", icon: BookOpen, detail: "24 weeks", href: "/curriculum" },
-  { label: "Resources", icon: FileText, href: "/resources" },
-  { label: "Project lab", icon: FlaskConical, href: "/projects" },
-  { label: "Notebook", icon: Code2, href: "/notebook" },
-];
-
 export default function Dashboard() {
   const { curriculum: curriculumData } = useCurriculumData();
   const [mobileNav, setMobileNav] = useState(false);
@@ -58,6 +50,7 @@ export default function Dashboard() {
   const [memberName, setMemberName] = useState("Learner");
   const [memberInitials, setMemberInitials] = useState("LW");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const [announcement, setAnnouncement] = useState<{ title: string; body: string } | null>(null);
   const [nextAssignment, setNextAssignment] = useState<{ title: string; week: number; dueAt: string | null } | null>(null);
   const [pendingAssignmentCount, setPendingAssignmentCount] = useState(0);
@@ -106,6 +99,7 @@ export default function Dashboard() {
     if (!supabase) return;
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
+      setSignedIn(true);
       const { data } = await supabase.from("profiles").select("display_name,membership_state,role").eq("id", user.id).maybeSingle();
       if (data?.display_name) {
         setMemberName(data.display_name);
@@ -195,13 +189,24 @@ export default function Dashboard() {
 
         <button className="workspace-switch" onClick={() => showComingSoon("Workspace switcher")}>
           <span className="workspace-avatar">T</span>
-          <span className="workspace-copy"><strong>Learning workspace</strong><small>{isSupabaseConfigured() ? "Society member" : "Local workspace"}</small></span>
+          <span className="workspace-copy"><strong>Learning workspace</strong><small>{isSupabaseConfigured() ? (signedIn ? "Member access" : "Sign in required") : "Local workspace"}</small></span>
           <ChevronDown size={15} className="muted-icon" />
         </button>
 
         <div className="nav-group">
-          <p className="nav-label">Workspace</p>
-          {navigation.map(({ label, icon: Icon, active, detail, href }) => (
+          <p className="nav-label">YOUR WORKSPACE</p>
+          {[
+            { label: "Overview", icon: LayoutDashboard, href: "/", active: true },
+            { label: "Curriculum", icon: BookOpen, href: "/curriculum", detail: "24 weeks" },
+            { label: "Resources", icon: FileText, href: "/resources" },
+            { label: "Project lab", icon: FlaskConical, href: "/projects" },
+            { label: "Notebook", icon: Code2, href: "/notebook" },
+            { label: "AI assistant", icon: FlaskConical, href: "/assistant" },
+            { label: "Analytics", icon: Clock3, href: "/analytics" },
+            { label: "Achievements", icon: Target, href: "/leaderboard" },
+            { label: "Help center", icon: CircleHelp, href: "/help" },
+            ...(isAdmin ? [{ label: "Administration", icon: Settings2, href: "/admin" }] : []),
+          ].map(({ label, icon: Icon, active, detail, href }) => (
             <button
               className={`nav-item ${active ? "nav-active" : ""}`}
               key={label}
@@ -215,15 +220,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="nav-group community-group">
-          <p className="nav-label">Society</p>
-          <button className="nav-item" onClick={() => window.location.assign("/assistant")}><FlaskConical size={17} /><span>AI assistant</span></button>
-          <button className="nav-item" onClick={() => window.location.assign("/analytics")}><Clock3 size={17} /><span>Analytics</span></button>
-          <button className="nav-item" onClick={() => window.location.assign("/leaderboard")}><Target size={17} /><span>Achievements</span></button>
-          <button className="nav-item" onClick={() => window.location.assign("/help")}><CircleHelp size={17} /><span>Help center</span></button>
-          {isAdmin && <button className="nav-item" onClick={() => window.location.assign("/admin")}><Settings2 size={17} /><span>Administration</span></button>}
-        </div>
-
         <div className="sidebar-bottom">
           <div className="week-mini">
             <div className="week-mini-top"><span>YOUR LEARNING PATH</span><MoreHorizontal size={17} /></div>
@@ -231,10 +227,10 @@ export default function Dashboard() {
             <div className="mini-progress"><span style={{ width: `${curriculumPercent}%` }} /></div>
             <div className="week-mini-foot"><span>{currentWeek.title}</span><span>{curriculumPercent}%</span></div>
           </div>
-          <button className="nav-item" onClick={() => void handleAccountAction()}><Settings2 size={17} /><span>Account &amp; sign out</span></button>
+          <button className="nav-item" onClick={() => void handleAccountAction()}><Settings2 size={17} /><span>{signedIn ? "Account & sign out" : "Account & sync"}</span></button>
           <div className="profile-row">
             <div className="profile-avatar">{memberInitials}</div>
-            <div className="profile-copy"><strong>{memberName}</strong><small>{isSupabaseConfigured() ? "Society member" : "Local workspace"}</small></div>
+            <div className="profile-copy"><strong>{memberName}</strong><small>{isSupabaseConfigured() ? (signedIn ? "Society account" : "Signed out") : "Local workspace"}</small></div>
             <button className="icon-button profile-menu" onClick={() => void handleAccountAction()} aria-label="Account and sign out"><MoreHorizontal size={18} /></button>
           </div>
         </div>
