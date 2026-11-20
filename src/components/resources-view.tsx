@@ -60,7 +60,10 @@ export function ResourcesView() {
 
   const types = ["All types", ...Array.from(new Set(resourceData.map((resource) => resource.kind)))];
   const filtered = useMemo(() => resourceData.filter((resource) => {
-    const text = `${resource.title} ${resource.kind} ${resource.note ?? ""} ${resource.weeks.map((week) => curriculum[week - 1].title).join(" ")}`.toLowerCase();
+    const weekTitles = resource.weeks
+      .map((week) => curriculum[week - 1]?.title)
+      .filter((title): title is string => Boolean(title));
+    const text = `${resource.title} ${resource.kind} ${resource.note ?? ""} ${weekTitles.join(" ")}`.toLowerCase();
     const matchesQuery = text.includes(query.trim().toLowerCase());
     const matchesKind = kind === "All types" || resource.kind === kind;
     const matchesWeek = weekFilter === "All weeks" || resource.weeks.includes(Number(weekFilter));
