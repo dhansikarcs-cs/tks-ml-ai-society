@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/lib/theme";
 type Affiliation = "tks" | "other";
 
 export function LoginForm() {
-  const [mode, setMode] = useState<"sign-in" | "sign-up" | "recover" | "update">("sign-in");
+  const [mode, setMode] = useState<"sign-in" | "sign-up" | "recover" | "update">("sign-up");
   const [affiliation, setAffiliation] = useState<Affiliation>("tks");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");

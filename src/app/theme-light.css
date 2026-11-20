@@ -453,3 +453,29 @@
 [data-theme="light"] .inline-link,
 [data-theme="light"] .shelf-link { color: #6a4fc0; }
 
+/* Account/auth readability overrides (light theme) */
+[data-theme="light"] .account-card, [data-theme="light"] .pending-card { width: min(480px, 100%); padding: 28px; border-radius: 14px; }
+[data-theme="light"] .pending-card { width: min(560px, 100%); }
+[data-theme="light"] .account-eyebrow { font-size: 12px; letter-spacing: 0.08em; margin-bottom: 10px; }
+[data-theme="light"] .account-card h1 { font-size: clamp(28px, 4vw, 34px); line-height: 1.15; letter-spacing: -0.02em; }
+[data-theme="light"] .account-card > p:not(.account-eyebrow) { font-size: 15px; line-height: 1.6; margin: 10px 0 20px; }
+[data-theme="light"] .account-form { gap: 14px; }
+[data-theme="light"] .account-form label, [data-theme="light"] .account-form legend { font-size: 14px; font-weight: 600; gap: 8px; }
+[data-theme="light"] .account-form input, [data-theme="light"] .account-form select { min-height: 46px; padding: 10px 12px; font-size: 16px; border-radius: 10px; }
+[data-theme="light"] .account-primary, [data-theme="light"] .account-secondary { min-height: 46px; font-size: 15px; border-radius: 10px; }
+[data-theme="light"] .account-switch, [data-theme="light"] .account-forgot { font-size: 14px; padding: 12px 0; }
+[data-theme="light"] .account-security { font-size: 13px; gap: 8px; padding-top: 14px; line-height: 1.5; }
+[data-theme="light"] .form-message { font-size: 14px; line-height: 1.55; padding: 10px 12px; border-radius: 10px; }
+[data-theme="light"] .setup-callout strong { font-size: 14px; }
+[data-theme="light"] .setup-callout span { font-size: 13px; }
+[data-theme="light"] .affiliation-fieldset legend { font-size: 14px; }
+[data-theme="light"] .affiliation-option strong { font-size: 14px; }
+[data-theme="light"] .affiliation-option small { font-size: 13px; }
+[data-theme="light"] .account-flow h2 { font-size: 22px; }
+[data-theme="light"] .account-flow-steps strong, [data-theme="light"] .pending-status-item strong, [data-theme="light"] .account-flow-note strong { font-size: 15px; }
+[data-theme="light"] .account-flow-steps p, [data-theme="light"] .pending-status-item small, [data-theme="light"] .pending-note p, [data-theme="light"] .account-flow-note p { font-size: 14px; line-height: 1.55; }
+@media (max-width: 520px) {
+  [data-theme="light"] .account-page { padding: 16px 12px 28px; justify-content: flex-start; }
+  [data-theme="light"] .account-card, [data-theme="light"] .pending-card, [data-theme="light"] .account-flow { padding: 18px; border-radius: 12px; }
+  [data-theme="light"] .account-card h1 { font-size: 28px; }
+}
