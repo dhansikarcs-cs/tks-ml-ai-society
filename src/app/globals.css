@@ -293,3 +293,23 @@ h1, h2, h3, h4, p { margin-top: 0; }
   .week-mini { padding: 8px 9px; }
   .workspace-switch { height: 32px; }
 }
+
+
+/* Mobile dashboard declutter */
+@media (max-width: 650px) {
+  .focus-body { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .focus-completion { flex-direction: row; min-width: 0; width: 100%; justify-content: flex-start; gap: 10px; }
+  .upcoming-copy { flex-wrap: wrap; }
+  .upcoming-copy p { display: block; width: 100%; }
+  .stat-card { min-height: 0; }
+  .hours-stat { min-height: 0; }
+  .resource-item { gap: 8px; }
+  .announcement-card { padding: 12px; }
+}
+@media (max-width: 480px) {
+  .overview-grid { grid-template-columns: 1fr; }
+  .hero-card { min-height: 0; padding: 20px 16px; }
+  .hero-content h2 { font-size: 22px; }
+  .focus-topline { padding: 0 12px; }
+  .focus-body, .milestone-list { padding-left: 12px; padding-right: 12px; }
+}

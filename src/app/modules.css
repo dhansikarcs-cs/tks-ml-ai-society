@@ -73,3 +73,69 @@
 .module-sidebar-footer { padding-top: 6px; }
 .module-user { margin-top: 8px; }
 @media (max-width: 850px) { .module-nav-link { min-height: 38px; font-size: 13px; } }
+
+
+/* Mobile clutter reduction */
+@media (max-width: 650px) {
+  .module-content { width: calc(100% - 24px); padding-bottom: 20px; }
+  .module-page-heading { flex-wrap: wrap; align-items: flex-start; gap: 10px; padding: 16px 0 12px; }
+  .module-page-heading h1 { font-size: 24px; line-height: 1.2; }
+  .module-page-heading > div > span { max-width: 100%; font-size: 13px; line-height: 1.6; }
+  .module-page-actions { width: 100%; margin-left: 0; justify-content: flex-start; flex-wrap: wrap; }
+  .module-panel { padding: 14px; border-radius: 10px; }
+  .module-panel-heading { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .admin-metrics, .achievement-summary-grid { grid-template-columns: 1fr; gap: 8px; }
+  .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 6px; padding-bottom: 8px; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .admin-tabs button { flex: 0 0 auto; white-space: nowrap; font-size: 13px; padding: 8px 12px; }
+  .admin-table th, .admin-table td { padding: 10px 8px; font-size: 13px; }
+  .admin-table td { white-space: normal; }
+  .admin-table td:first-child { min-width: 160px; }
+  .admin-row-actions { flex-wrap: wrap; }
+  .admin-row-actions button, .admin-row-text-button, .submission-review-actions button { min-height: 36px; }
+  .submission-review-heading { flex-direction: column; gap: 8px; }
+  .submission-review-actions { flex-wrap: wrap; }
+  .peer-assignment-controls { flex-direction: column; align-items: stretch; }
+  .peer-assignment-controls select, .peer-assignment-controls button { width: 100%; }
+  .resource-library-grid { grid-template-columns: 1fr; }
+  .resource-filters { grid-template-columns: 1fr; }
+  .resource-filters .module-search { grid-column: auto; }
+  .analytics-side-column { grid-template-columns: 1fr; }
+  .assistant-context-column { grid-template-columns: 1fr; }
+  .suggested-prompt-grid { grid-template-columns: 1fr; }
+  .leaderboard-hero { flex-direction: column; align-items: flex-start; gap: 12px; min-height: 0; }
+  .leaderboard-hero-icon { margin-right: 0; width: 48px; height: 48px; }
+  .leaderboard-layout { gap: 12px; }
+  .ranking-row { gap: 8px; }
+  .notebook-layout { grid-template-columns: 1fr; }
+  .notebook-sidebar { max-height: 220px; border-right: 0; border-bottom: 1px solid #2b2c30; }
+  .note-list { display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; }
+  .note-list-item { width: 100%; min-width: 0; border-right: 0; border-bottom: 1px solid #25262a; }
+  .notebook-editor { padding: 14px; min-height: 420px; }
+  .note-meta-controls { grid-template-columns: 1fr; }
+  .notebook-toolbar { flex-wrap: wrap; gap: 8px; }
+  .notebook-actions { flex-wrap: wrap; }
+  .project-lab-overview { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .project-workspace-layout { grid-template-columns: 1fr; }
+  .session-start-panel { grid-template-columns: 1fr; }
+  .session-start-controls { grid-column: auto; flex-direction: column; align-items: stretch; }
+  .session-start-controls select, .session-start-controls .primary-button { width: 100%; }
+  .weekly-analytics-summary { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .weekly-analytics-summary label, .weekly-analytics-summary select { width: 100%; align-items: flex-start; }
+  .project-repo-row { flex-wrap: wrap; }
+  .admin-content-grid { grid-template-columns: 1fr; }
+  .module-top-actions { gap: 6px; }
+}
+@media (max-width: 480px) {
+  .module-content { width: calc(100% - 20px); }
+  .module-topbar { padding: 0 12px; }
+  .module-page-heading h1 { font-size: 22px; }
+  .module-panel { padding: 12px; }
+  .admin-metrics > div { padding: 10px; }
+  .leaderboard-hero { padding: 14px; }
+  .leaderboard-hero h2 { font-size: 20px; }
+  .assistant-chat-header { flex-direction: column; align-items: flex-start; }
+  .assistant-chat-header label, .assistant-chat-header select { width: 100%; max-width: 100%; }
+  .session-running-actions { width: 100%; flex-direction: column; }
+  .session-running-actions button { width: 100%; }
+}
