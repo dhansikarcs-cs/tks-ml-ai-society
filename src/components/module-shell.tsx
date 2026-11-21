@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import {
   Activity, ArrowLeft, BookOpen, BrainCircuit, CircleHelp, Code2, FileText, LogIn, LogOut,
-  FlaskConical, LayoutDashboard, Menu, Settings2, Trophy, X,
+  FlaskConical, LayoutDashboard, Menu, Settings2, Trophy, UserRound, X,
 } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/lib/theme";
+import { OnboardingTour } from "@/components/onboarding-tour";
 
 const items = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const items = [
   { href: "/analytics", label: "Analytics", icon: Activity },
   { href: "/leaderboard", label: "Achievements", icon: Trophy },
   { href: "/help", label: "Help center", icon: CircleHelp },
+  { href: "/account", label: "Account settings", icon: UserRound },
   { href: "/admin", label: "Administration", icon: Settings2 },
 ];
 
@@ -93,11 +95,12 @@ export function ModuleShell({
             <ThemeToggle className="module-sidebar-theme" />
             {signedIn ? <button className="module-account-link" onClick={signOut}><LogOut size={15} /> Sign out</button> : <Link className="module-account-link" href="/login"><LogIn size={15} /> Sign in</Link>}
           </div>
-          <div className="module-user"><span className="profile-avatar">{initials}</span><span><strong>{memberName || (cloudConfigured ? "Member" : "Local workspace")}</strong><small>{signedIn ? "Society account" : (cloudConfigured ? "Signed out" : "Personal device")}</small></span></div>
+          {signedIn ? <Link href="/account" className="module-user module-user-link" onClick={() => setMenuOpen(false)}><span className="profile-avatar">{initials}</span><span><strong>{memberName || "Member"}</strong><small>Account settings</small></span></Link> : <div className="module-user"><span className="profile-avatar">{initials}</span><span><strong>{memberName || (cloudConfigured ? "Member" : "Local workspace")}</strong><small>{cloudConfigured ? "Signed out" : "Personal device"}</small></span></div>}
         </div>
       </aside>
       {menuOpen && <button className="module-scrim" onClick={() => setMenuOpen(false)} aria-label="Close menu" />}
       <div className="module-main">
+        <OnboardingTour />
         <header className="module-topbar">
           <div className="module-crumb"><button className="icon-button module-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={19} /></button><Link href="/">Workspace</Link><span>/</span><strong>{title}</strong></div>
           <div className="module-top-actions"><ThemeToggle className="module-theme-toggle" />{signedIn ? <button className="module-login-link" onClick={signOut}><LogOut size={15} /> Sign out</button> : <Link href="/login" className="module-login-link"><LogIn size={15} /> Sign in</Link>}<span className="profile-avatar">{initials}</span></div>
