@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, ExternalLink, Lightbulb, Plus, Search, Send, Trash2, Video } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Copy, ExternalLink, Lightbulb, Plus, Search, Send, Sparkles, Trash2, Video } from "lucide-react";
 import { phases, type CurriculumWeek } from "@/lib/curriculum";
 import { readLocal, writeLocal } from "@/lib/local-data";
 import { ModuleShell, Panel } from "@/components/module-shell";
@@ -160,6 +160,7 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
   const [newVideoUrl, setNewVideoUrl] = useState("");
   const [newResTitle, setNewResTitle] = useState("");
   const [newResUrl, setNewResUrl] = useState("");
+  const [copiedPrompt, setCopiedPrompt] = useState("");
 
   useEffect(() => {
     setCustom(readLocal<WeekCustom>(`week-custom-${week.week}`, defaultWeekCustom()));
@@ -227,9 +228,21 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     ...[
       { title: "scikit-learn/scikit-learn", url: "https://github.com/scikit-learn/scikit-learn", kind: "Repository" as const, note: "Classical ML algorithms and API design." },
       { title: "pytorch/examples", url: "https://github.com/pytorch/examples", kind: "Repository" as const, note: "Reference implementations of common models." },
-      { title: "karpathy/micrograd", url: "https://github.com/karpathy/micrograd", kind: "Repository" as const, note: "Tiny autograd engine — great for learning." },
+      { title: "karpathy/micrograd", url: "https://github.com/karpathy/micrograd", kind: "Repository" as const, note: "Tiny autograd engine - great for learning." },
     ].filter((r) => !week.resources.some((w) => w.url === r.url)),
   ].slice(0, 6);
+
+  const aiPrompts = [
+    { label: "Explain this week", prompt: `I'm on Week ${week.week}: "${week.title}" in an ML/AI curriculum. Explain the key concepts (${week.topics.slice(0, 5).join(", ")}) in simple terms, with an intuitive example and one common misconception.` },
+    { label: "Quiz me", prompt: `Quiz me on Week ${week.week}: "${week.title}". Ask me 5 questions (mix of concept, math intuition, and practical) one at a time. After each answer, give feedback and the correct idea.` },
+    { label: "Help with the build", prompt: `I'm working on the Week ${week.week} build: "${week.build}". Give me a step-by-step plan, what to watch out for, and how to evaluate if it works. Don't write the full solution for me - guide me.` },
+    { label: "Assignment hint", prompt: `I need help with this Week ${week.week} assignment: "${week.assignment}". Give me hints and a way to think about it, but don't give the complete final answer.` },
+    ...(week.paper ? [{ label: "Understand the paper", prompt: `Help me understand this paper/resource for Week ${week.week}: "${week.paper}". Summarize the problem, method, key results, and limitations in plain language.` }] : []),
+  ];
+
+  async function copyPrompt(text: string, label: string) {
+    try { await navigator.clipboard.writeText(text); setCopiedPrompt(label); setTimeout(() => setCopiedPrompt(""), 1500); } catch {}
+  }
 
   return <article className="week-detail-card">
     <div className="week-detail-top"><div><span className="week-detail-kicker">MONTH {String(week.phase).padStart(2, "0")} <span>·</span> WEEK {String(week.week).padStart(2, "0")}</span><h2>{week.title}</h2><p>{week.summary}</p></div><div className="week-completion-badge"><strong>{completedItems}/{checklist.length}</strong><small>steps</small></div></div>
@@ -265,6 +278,7 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     {detailTab === "assessment" && <div className="week-detail-content"><div className="detail-section"><h3>Quick understanding check</h3><p className="module-muted">Answer in your own words. This practice check is not graded.</p><div className="assessment-list">{week.assessment.map((question, index) => { const key = `week-${week.week}-question-${index}`; return <label key={question} className="assessment-row"><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{question}</strong><textarea value={answers[key] ?? ""} onChange={(event) => setAnswer(key, event.target.value)} placeholder="Jot down your explanation…" rows={2} /></div></label>; })}</div><p className="progress-save-note">Practice responses are saved in this browser, not submitted or graded.</p></div></div>}
 
     {detailTab === "ideas" && <div className="week-detail-content">
+      <section className="detail-section"><h3><Sparkles size={15} /> AI prompts for this week</h3><p className="module-muted">Use these prompts in your own AI (ChatGPT, Gemini, Claude, local model, etc.) or open them directly in our AI assistant.</p><div className="week-ai-prompts">{aiPrompts.map((item) => <div key={item.label} className="week-ai-prompt-card"><div className="week-ai-prompt-head"><strong>{item.label}</strong><div className="week-ai-prompt-actions"><button type="button" className="small-outline-button" onClick={() => void copyPrompt(item.prompt, item.label)}><Copy size={13} /> {copiedPrompt === item.label ? "Copied" : "Copy prompt"}</button><Link className="small-outline-button" href={`/assistant?prompt=${encodeURIComponent(item.prompt)}`}><Bot size={13} /> Open in AI assistant</Link></div></div><p>{item.prompt}</p></div>)}</div></section>
       <section className="detail-section"><h3><Lightbulb size={15} /> What to build this week (ideas & examples)</h3><ul className="idea-list">{buildIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href={`/projects?week=${week.week}`}>Start building in Project lab <ArrowRight size={14} /></Link></section>
       <section className="detail-section"><h3><Search size={15} /> How to analyze (ideas & examples)</h3><ul className="idea-list">{analyzeIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href="/projects">Open repo analysis workspace <ArrowRight size={14} /></Link></section>
       <section className="detail-section"><h3>Suggested repositories to analyze</h3><p className="module-muted">Pick a repo, clone it locally, run/read it, and document your findings in the Project lab analysis workspace.</p><div className="week-resource-list">{repoSuggestions.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title}</strong><small>Repository{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div></section>

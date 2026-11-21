@@ -80,6 +80,10 @@ export function AssistantView() {
       .catch(() => setServerReason("The assistant service could not be reached."));
     setMessages(readLocal<Message[]>("assistant-history", []));
     setProvider(loadProvider());
+    try {
+      const prompt = new URLSearchParams(window.location.search).get("prompt");
+      if (prompt) setInput(prompt.slice(0, 5000));
+    } catch {}
   }, []);
 
   useEffect(() => {

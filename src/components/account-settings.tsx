@@ -52,19 +52,26 @@ export function AccountSettings() {
     setSaving(true); setMessage("");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage("Sign in to update your profile."); setSaving(false); return; }
-    const payload = {
+    const payload: Record<string, unknown> = {
       display_name: profile.display_name.trim(),
       username: profile.username.trim() || null,
       affiliation: profile.affiliation || null,
       organization_name: profile.organization_name.trim() || null,
       avatar_url: profile.avatar_url.trim() || null,
     };
-    const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
+    let { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
+    let avatarWarning = "";
+    if (error && /avatar_url|schema cache/i.test(error.message)) {
+      const { avatar_url: _omit, ...withoutAvatar } = payload;
+      const retry = await supabase.from("profiles").update(withoutAvatar).eq("id", user.id);
+      error = retry.error;
+      if (!error) avatarWarning = " Profile photo URL wasn't saved yet - apply migration 0004_profile_avatar.sql in Supabase.";
+    }
     if (error) {
       setMessage(error.message.includes("profiles_username_unique") ? "That username is already taken." : error.message);
     } else {
       await supabase.auth.updateUser({ data: { display_name: payload.display_name, username: payload.username } });
-      setMessage("Profile updated.");
+      setMessage("Profile updated." + avatarWarning);
       try {
         const cached = JSON.parse(sessionStorage.getItem("tks-member-shell") || "{}");
         sessionStorage.setItem("tks-member-shell", JSON.stringify({ ...cached, memberName: payload.display_name || profile.email.split("@")[0] || "Member" }));
