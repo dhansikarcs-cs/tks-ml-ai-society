@@ -139,3 +139,26 @@
   .session-running-actions { width: 100%; flex-direction: column; }
   .session-running-actions button { width: 100%; }
 }
+
+
+/* Focus/work mode */
+.module-focus-mode .module-sidebar { display: none !important; }
+.module-focus-mode .module-main { margin-left: 0 !important; }
+.module-focus-mode .module-footer,
+.module-focus-mode .local-mode-banner { display: none !important; }
+.module-focus-mode .module-page-heading { padding: 14px 0 10px; }
+.module-focus-mode .module-page-heading > div > span { display: none; }
+.module-focus-mode .module-content { width: min(1200px, calc(100% - 40px)); }
+@media (max-width: 650px) {
+  .module-focus-mode .module-content { width: calc(100% - 24px); }
+}
+
+
+/* Collapsible panels */
+.module-panel-toggle { display: flex; align-items: flex-start; gap: 8px; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.module-panel-toggle > svg { flex: 0 0 16px; margin-top: 2px; color: #94939b; transition: transform .15s ease; }
+.module-panel-toggle > svg.is-collapsed { transform: rotate(-90deg); }
+.module-panel-toggle h2 { margin: 0; }
+.module-panel-toggle p { margin: 4px 0 0; }
+.module-panel-collapsed .module-panel-heading { margin-bottom: 0; }
+[data-theme="light"] .module-panel-toggle > svg { color: #6b6978; }

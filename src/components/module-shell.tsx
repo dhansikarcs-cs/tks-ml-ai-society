@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import {
-  Activity, ArrowLeft, BookOpen, BrainCircuit, CircleHelp, Code2, FileText, LogIn, LogOut,
-  FlaskConical, LayoutDashboard, Menu, Settings2, Trophy, UserRound, X,
+  Activity, ArrowLeft, BookOpen, BrainCircuit, ChevronDown, CircleHelp, Code2, FileText, LogIn, LogOut,
+  FlaskConical, LayoutDashboard, Maximize2, Menu, Minimize2, Settings2, Trophy, UserRound, X,
 } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -42,10 +42,12 @@ export function ModuleShell({
   const pathname = usePathname();
   const cached = typeof window !== "undefined" ? (() => { try { return JSON.parse(sessionStorage.getItem("tks-member-shell") || "null") as { signedIn: boolean; isAdmin: boolean; memberName: string } | null; } catch { return null; } })() : null;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [signedIn, setSignedIn] = useState(cached?.signedIn ?? false);
   const [isAdmin, setIsAdmin] = useState(cached?.isAdmin ?? false);
   const [memberName, setMemberName] = useState(cached?.memberName ?? "");
   const cloudConfigured = isSupabaseConfigured();
+  useEffect(() => { try { setFocusMode(localStorage.getItem("tks-focus-mode") === "1"); } catch {} }, []);
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
@@ -73,8 +75,14 @@ export function ModuleShell({
   }
   const initials = (memberName || "M").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase().slice(0, 2);
   const visibleItems = items.filter((item) => item.href !== "/admin" || isAdmin);
+  function toggleFocusMode() {
+    const next = !focusMode;
+    setFocusMode(next);
+    try { localStorage.setItem("tks-focus-mode", next ? "1" : "0"); } catch {}
+  }
+
   return (
-    <div className="module-frame">
+    <div className={`module-frame ${focusMode ? "module-focus-mode" : ""}`}>
       <aside className={`module-sidebar ${menuOpen ? "module-sidebar-open" : ""}`}>
         <div className="module-brand">
           <Link className="module-brand-home" href="/"><span className="brand-mark"><BrainCircuit size={18} /></span><span><strong>TKS Society</strong><small>ML &amp; AI</small></span></Link>
@@ -103,7 +111,7 @@ export function ModuleShell({
         <OnboardingTour />
         <header className="module-topbar">
           <div className="module-crumb"><button className="icon-button module-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={19} /></button><Link href="/">Workspace</Link><span>/</span><strong>{title}</strong></div>
-          <div className="module-top-actions"><ThemeToggle className="module-theme-toggle" />{signedIn ? <button className="module-login-link" onClick={signOut}><LogOut size={15} /> Sign out</button> : <Link href="/login" className="module-login-link"><LogIn size={15} /> Sign in</Link>}<span className="profile-avatar">{initials}</span></div>
+          <div className="module-top-actions"><button className="icon-button module-theme-toggle" onClick={toggleFocusMode} aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"} title={focusMode ? "Exit focus mode" : "Focus mode"}>{focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button><ThemeToggle className="module-theme-toggle" />{signedIn ? <button className="module-login-link" onClick={signOut}><LogOut size={15} /> Sign out</button> : <Link href="/login" className="module-login-link"><LogIn size={15} /> Sign in</Link>}<span className="profile-avatar">{initials}</span></div>
         </header>
         <main className="module-content">
           {!cloudConfigured && <div className="local-mode-banner"><span className="local-status" /><span><strong>Local workspace</strong> · Your learning, notes, and projects are saved on this device. Optional cloud accounts/sync can be enabled for society access.</span><Link href="/login">Account & sync options <ArrowLeft size={13} /></Link></div>}
@@ -116,6 +124,17 @@ export function ModuleShell({
   );
 }
 
-export function Panel({ title, description, children, action }: { title: string; description?: string; children: ReactNode; action?: ReactNode }) {
-  return <section className="module-panel"><div className="module-panel-heading"><div><h2>{title}</h2>{description && <p>{description}</p>}</div>{action}</div>{children}</section>;
+export function Panel({ title, description, children, action, collapsible, defaultOpen = true }: { title: string; description?: string; children: ReactNode; action?: ReactNode; collapsible?: boolean; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className={`module-panel ${collapsible ? "module-panel-collapsible" : ""} ${collapsible && !open ? "module-panel-collapsed" : ""}`}>
+      <div className="module-panel-heading">
+        <div>
+          {collapsible ? <button type="button" className="module-panel-toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open}><ChevronDown size={16} className={open ? "" : "is-collapsed"} /><span><h2>{title}</h2>{description && <p>{description}</p>}</span></button> : <><h2>{title}</h2>{description && <p>{description}</p>}</>}
+        </div>
+        {action}
+      </div>
+      {(!collapsible || open) && children}
+    </section>
+  );
 }
