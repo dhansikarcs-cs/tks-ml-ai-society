@@ -141,7 +141,7 @@ export function AnalyticsView() {
     <div className="analytics-privacy-banner"><span><Target size={16} /></span><p><strong>Private by design.</strong> No keystrokes, screenshots, webcam, microphone, or cross-site tracking. Session time is an estimate of active engagement, not proof of attention or understanding.</p></div>
     <div className="analytics-grid">
       <div className="analytics-main-column">
-        <Panel title="Focus session" description="Start a session when you’re ready. It pauses if this tab is hidden or you’re inactive for two minutes.">
+        <Panel collapsible title="Focus session" description="Start a session when you’re ready. It pauses if this tab is hidden or you’re inactive for two minutes.">
           {!draft ? <div className="session-start-panel">
             <div className="session-start-icon"><Clock3 size={23} /></div>
             <div><h3>Make a little space to learn.</h3><p>Only count time while this page is visible and you’re active.</p></div>
@@ -154,22 +154,22 @@ export function AnalyticsView() {
             <span className="session-recovery-note">Your active timer is periodically saved in this browser.</span>
           </div>}
         </Panel>
-        <Panel title="This week" description="Time from sessions you explicitly started.">
+        <Panel collapsible title="This week" description="Time from sessions you explicitly started.">
           <div className="weekly-analytics-summary"><div><strong>{formatDuration(weekSeconds + (draft?.running && !paused ? seconds : 0))}</strong><span>of {formatDuration(goalSeconds)} target</span></div><label>Weekly goal<select value={goalMinutes} onChange={(event) => updateGoal(Number(event.target.value))}><option value={180}>3 hours</option><option value={300}>5 hours</option><option value={420}>7 hours</option><option value={600}>10 hours</option></select></label></div>
           <div className="weekly-analytics-track"><span style={{ width: `${completion}%` }} /></div>
           <div className="weekly-chart" aria-label="Active learning time by day">{days.map((day, index) => <div key={index} className="weekly-chart-day"><div className="weekly-chart-bar-wrap"><i style={{ height: `${Math.max(day.seconds ? 6 : 2, day.seconds / maxDay * 100)}%` }} /></div><span>{day.label}</span></div>)}</div>
           <div className="weekly-chart-caption"><span>{completion}% of weekly target</span><span>{Math.max(0, Math.round((goalSeconds - weekSeconds) / 3600 * 10) / 10)} hours remaining</span></div>
         </Panel>
-        <Panel title="Recent sessions" description="A local history of completed focus sessions.">
+        <Panel collapsible title="Recent sessions" description="A local history of completed focus sessions.">
           {sessions.length ? <div className="session-history">{sessions.slice(0, 12).map((session) => <div key={session.id} className="session-history-row"><span className={`session-category-symbol category-${session.category}`}><BookOpen size={14} /></span><span><strong>{capitalize(session.category)} session</strong><small>{new Date(session.startedAt).toLocaleString()}</small></span><b>{formatDuration(session.seconds)}</b></div>)}</div> : <div className="module-empty compact"><Clock3 size={20} /><strong>No sessions yet</strong><span>Start a session when you begin a focused study block.</span></div>}
         </Panel>
       </div>
       <aside className="analytics-side-column">
-        <Panel title="Learning rhythm" description="Your own recent activity.">
+        <Panel collapsible title="Learning rhythm" description="Your own recent activity.">
           <div className="analytics-stat-stack"><div><span>Study sessions this week</span><strong>{weekSessions.length}</strong></div><div><span>Active days this week</span><strong>{new Set(weekSessions.map((session) => new Date(session.startedAt).toDateString())).size}</strong></div><div><span>Sessions today</span><strong>{todaySessions}</strong></div></div>
           <p className="analytics-small-print">No streaks or rankings are based on idle browser time.</p>
         </Panel>
-        <Panel title="Time by activity" description="All-time time you chose to track.">
+        <Panel collapsible title="Time by activity" description="All-time time you chose to track.">
           <div className="activity-breakdown">{Object.entries(grouped).map(([name, total]) => <div key={name}><span className={`breakdown-dot breakdown-${name}`} /><span>{capitalize(name)}</span><strong>{formatDuration(total)}</strong></div>)}</div>
           {Object.values(grouped).every((value) => value === 0) && <p className="analytics-empty-note">Your breakdown will appear here after you finish a session.</p>}
         </Panel>

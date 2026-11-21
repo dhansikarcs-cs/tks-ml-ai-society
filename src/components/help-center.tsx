@@ -85,7 +85,7 @@ export function HelpCenter() {
   return (
     <ModuleShell title="Help center" description="Report a bug, raise a complaint, or ask for help. Your requests are private and visible only to you and the administrator." icon={LifeBuoy}>
       <div className="help-layout">
-        <Panel title="Send a request" description="Be specific so the admin can help you quickly. Include what you were trying to do and what went wrong.">
+        <Panel collapsible title="Send a request" description="Be specific so the admin can help you quickly. Include what you were trying to do and what went wrong.">
           {!configured ? (
             <p className="module-muted">Help requests are a society feature and require a signed-in member account. For local learning, you can continue using all workspace tools on this device.</p>
           ) : (
@@ -103,7 +103,7 @@ export function HelpCenter() {
           )}
         </Panel>
 
-        <Panel title="Your requests" description="Track the status of requests you’ve submitted.">
+        <Panel collapsible title="Your requests" description="Track the status of requests you’ve submitted.">
           {loading ? <p className="module-muted">Loading your requests…</p> : requests.length ? (
             <div className="help-request-list">
               {requests.map((req) => (

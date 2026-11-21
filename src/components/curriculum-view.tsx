@@ -84,7 +84,7 @@ export function CurriculumView() {
       <div className="curriculum-progress-copy"><span>Overall progress</span><strong>{completionPercent}%</strong><div className="curriculum-progress-track"><i style={{ width: `${completionPercent}%` }} /></div></div>
     </div>
     <div className="curriculum-layout">
-      <Panel title="Phase overview" description="Expand a phase and choose a week." collapsible>
+      <Panel collapsible title="Phase overview" description="Expand a phase and choose a week.">
         <label className="module-search" aria-label="Search curriculum"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search weeks, topics, or builds" /></label>
         <div className="phase-list">
           {phases.map((phase) => {

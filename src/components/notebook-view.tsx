@@ -289,7 +289,7 @@ export function NotebookView() {
         </> : <div className="notebook-welcome"><span><FilePlus2 size={23} /></span><h2>A space for working ideas.</h2><p>Keep notes, equations, code snippets, and questions connected to your learning journey.</p><button className="primary-button" onClick={createNote}><Plus size={15} /> Create your first note</button></div>}
       </section>
     </div>
-    <Panel title="Local-first notes & backup" description="Your notes and learning data are stored on this device. Back them up to your preferred drive or cloud anytime.">
+    <Panel collapsible title="Local-first notes & backup" description="Your notes and learning data are stored on this device. Back them up to your preferred drive or cloud anytime.">
       <div className="backup-actions">
         <button className="small-outline-button" onClick={() => void exportAllNotes()}><Download size={14} /> Export all notes (Markdown)</button>
         <button className="small-outline-button" onClick={() => void downloadWorkspaceBackup()}><ArrowDownToLine size={14} /> Download workspace backup</button>

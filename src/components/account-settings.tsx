@@ -99,7 +99,7 @@ export function AccountSettings() {
         <Panel title="Sign in required"><p className="panel-muted">Sign in to manage your profile and password.</p></Panel>
       ) : (
         <div className="account-settings-grid">
-          <Panel title="Profile" description="Your name and username are visible in society features where applicable.">
+          <Panel collapsible title="Profile" description="Your name and username are visible in society features where applicable.">
             <form className="admin-form account-settings-form" onSubmit={saveProfile}>
               <label>Email<input value={profile.email} disabled readOnly /></label>
               <label>Display name<input value={profile.display_name} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} maxLength={80} required /></label>
@@ -118,7 +118,7 @@ export function AccountSettings() {
               <button className="primary-button" disabled={saving} type="submit"><Save size={15} /> {saving ? "Saving..." : "Save profile"}</button>
             </form>
           </Panel>
-          <Panel title="Password" description="Change your account password. Use at least 8 characters.">
+          <Panel collapsible title="Password" description="Change your account password. Use at least 8 characters.">
             <form className="admin-form account-settings-form" onSubmit={savePassword}>
               <label>New password<input name="password" type="password" minLength={8} autoComplete="new-password" required /></label>
               <label>Confirm new password<input name="confirm" type="password" minLength={8} autoComplete="new-password" required /></label>
@@ -127,7 +127,7 @@ export function AccountSettings() {
             </form>
             <div className="account-security" style={{marginTop:12}}><ShieldCheck size={14} /> Passwords are managed by Supabase Auth. Never share your password.</div>
           </Panel>
-          <Panel title="Workspace tour" description="Revisit the quick tour of each tab and what it’s for.">
+          <Panel collapsible title="Workspace tour" description="Revisit the quick tour of each tab and what it’s for.">
             <button className="small-outline-button" type="button" onClick={startOnboardingTour}><Compass size={14} /> Start workspace tour</button>
           </Panel>
         </div>

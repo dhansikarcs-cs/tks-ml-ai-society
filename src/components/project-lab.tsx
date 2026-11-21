@@ -318,7 +318,7 @@ export function ProjectLab() {
     </div>
 
     {labMode === "build" && <>
-    <Panel title="Start a new project" description="Define what you will build, evaluate, and document. Your project work is saved locally on this device and can optionally sync to the society workspace if you’re an approved member.">
+    <Panel collapsible title="Start a new project" description="Define what you will build, evaluate, and document. Your project work is saved locally on this device and can optionally sync to the society workspace if you’re an approved member.">
       <form className="new-project-form" onSubmit={createProject}>
         <label className="project-name-field">Project title<input name="title" required placeholder="e.g. Week 3 PCA visual exploration" /></label>
         <label>Repository URL<input name="repository" placeholder="https://github.com/username/repository (optional)" /></label>
@@ -329,21 +329,21 @@ export function ProjectLab() {
       {message && <p className="module-status-message project-message">{message}</p>}
     </Panel>
 
-    {assignmentWeek && <Panel title={`Week ${assignmentWeek} assignment`} description={curriculum[assignmentWeek - 1]?.assignment || "Weekly assignment"} action={assignmentDraft.status === "submitted" ? <span className="member-state member-submitted">Submitted</span> : null}>
+    {assignmentWeek && <Panel collapsible title={`Week ${assignmentWeek} assignment`} description={curriculum[assignmentWeek - 1]?.assignment || "Weekly assignment"} action={assignmentDraft.status === "submitted" ? <span className="member-state member-submitted">Submitted</span> : null}>
       {assignment && <p className="assignment-cloud-note"><Cloud size={13} /> This assignment is published for members. Your submission will be visible to administrators.</p>}
       {!assignment && <p className="assignment-cloud-note"><Cloud size={13} /> {cloudReady ? "No published society assignment found for this week yet. You can still plan and track your build locally below." : "You can plan and track your weekly build locally here. Published society assignments and submissions are available when signed in with an approved membership."}</p>}
       <div className="assignment-submit-form"><label>Repository URL (optional)<input value={assignmentDraft.repository} onChange={(event) => setAssignmentDraft((current) => ({ ...current, repository: event.target.value }))} placeholder="https://github.com/owner/repository" /></label><label>Technical explanation &amp; reflection<textarea value={assignmentDraft.response} onChange={(event) => setAssignmentDraft((current) => ({ ...current, response: event.target.value }))} rows={4} placeholder="What did you implement? What did you learn? What are the limitations?" /></label><div><button className="small-outline-button" disabled={assignmentSaving} onClick={() => void saveAssignment(false)}>Save draft</button><button className="primary-button module-action-button" disabled={assignmentSaving || assignmentDraft.status === "submitted"} onClick={() => void saveAssignment(true)}><Send size={13} /> {assignmentSaving ? "Saving…" : assignmentDraft.status === "submitted" ? "Submitted" : "Submit assignment"}</button></div></div>
     </Panel>}
 
     <div className="project-workspace-layout">
-      <Panel title="My projects" description={cloudReady ? "Saved locally on this device and synced to your approved society workspace." : "Saved locally in this browser on this device. You can back up/export anytime; optional society sync/review is available for approved members."}>
+      <Panel collapsible title="My projects" description={cloudReady ? "Saved locally on this device and synced to your approved society workspace." : "Saved locally in this browser on this device. You can back up/export anytime; optional society sync/review is available for approved members."}>
         <div className="project-list">
           {projects.map((project) => <button className={`project-list-card ${project.id === selected?.id ? "project-list-active" : ""}`} key={project.id} onClick={() => setSelectedId(project.id)}><span className="project-list-icon"><FlaskConical size={14} /></span><span><strong>{project.title}</strong><small>{project.week ? `Week ${project.week}` : "Independent"} · {project.milestones.filter((m) => m.done).length}/{project.milestones.length} milestones</small></span><span className={`project-status status-${project.status}`}>{project.status.replace("_", " ")}</span></button>)}
           {!projects.length && <div className="empty-state project-empty"><FlaskConical size={28} /><p>No projects yet. Create one to track experiments, repositories, and reflections.</p></div>}
         </div>
       </Panel>
 
-      <Panel title={selected ? selected.title : "Project workspace"} description={selected?.description || "Select a project to track milestones, repository, and notes."} action={selected ? <button className="icon-button delete-project-button" aria-label="Delete project" onClick={() => removeProject(selected.id)}><Trash2 size={15} /></button> : undefined}>
+      <Panel collapsible title={selected ? selected.title : "Project workspace"} description={selected?.description || "Select a project to track milestones, repository, and notes."} action={selected ? <button className="icon-button delete-project-button" aria-label="Delete project" onClick={() => removeProject(selected.id)}><Trash2 size={15} /></button> : undefined}>
         {selected ? <>
           <div className="project-detail-meta"><span className={`project-status status-${selected.status}`}>{selected.status.replace("_", " ")}</span><span>{selected.week ? `Week ${selected.week}` : "Independent project"}</span><span>Updated {new Date(selected.updatedAt).toLocaleDateString()}</span></div>
           <div className="project-repo-row"><Github size={15} /><label><span>Repository</span><input value={selected.repository} onChange={(event) => updateProject({ repository: event.target.value })} placeholder="https://github.com/username/repository" /></label>{selected.repository && <a href={selected.repository} target="_blank" rel="noreferrer" aria-label="Open repository"><ExternalLink size={14} /></a>}</div>
@@ -356,7 +356,7 @@ export function ProjectLab() {
       </Panel>
     </div>
 
-    <Panel title="Capstone checklist" description="A self-audit for your final project. This is guidance for you, not surveillance.">
+    <Panel collapsible title="Capstone checklist" description="A self-audit for your final project. This is guidance for you, not surveillance.">
       <div className="capstone-progress-line"><span>{capstone.filter(Boolean).length} of {capstoneItems.length} complete</span><div><i style={{ width: `${Math.round(capstone.filter(Boolean).length / capstoneItems.length * 100)}%` }} /></div></div>
       <div className="capstone-checklist">{capstoneItems.map((item, index) => <label key={item}><input type="checkbox" checked={capstone[index]} onChange={() => updateCapstone(index)} /><span className="project-milestone-check">{capstone[index] && <Check size={10} />}</span>{item}</label>)}</div>
     </Panel>
@@ -365,7 +365,7 @@ export function ProjectLab() {
     </>}
 
     {labMode === "analyze" && <>
-    <Panel title="Analyze a repository" description="Take in a repo (yours or someone else’s), clone/copy it locally, run it if needed, and document what you learn in a structured workspace.">
+    <Panel collapsible title="Analyze a repository" description="Take in a repo (yours or someone else’s), clone/copy it locally, run it if needed, and document what you learn in a structured workspace.">
       <form className="new-project-form" onSubmit={createAnalysis}>
         <label className="project-name-field">Analysis title<input name="title" required placeholder="e.g. Analyze ResNet implementation / Review a peer project" /></label>
         <label>Repository URL<input name="repository" placeholder="https://github.com/owner/repository" /></label>
@@ -402,14 +402,14 @@ export function ProjectLab() {
     </Panel>
 
     <div className="project-workspace-layout">
-      <Panel title="Analysis workspaces" description="Your repo analyses are saved locally in this browser.">
+      <Panel collapsible title="Analysis workspaces" description="Your repo analyses are saved locally in this browser.">
         <div className="project-list">
           {analyses.map((a) => <button className={`project-list-card ${a.id === selectedAnalysis?.id ? "project-list-active" : ""}`} key={a.id} onClick={() => setSelectedAnalysisId(a.id)}><span className="project-list-icon"><Search size={14} /></span><span><strong>{a.title}</strong><small>{a.source === "mine" ? "My repository" : "External repository"} · {a.questions.filter((q) => q.answer.trim()).length}/{a.questions.length} answered</small></span></button>)}
           {!analyses.length && <div className="empty-state project-empty"><Search size={28} /><p>No analyses yet. Create one to take in a repo and document your understanding.</p></div>}
         </div>
       </Panel>
 
-      <Panel title={selectedAnalysis ? selectedAnalysis.title : "Repository analysis"} description={selectedAnalysis ? (selectedAnalysis.source === "mine" ? "Analyze and document your own repository." : "Analyze and document someone else’s repository.") : "Select or create an analysis workspace."} action={selectedAnalysis ? <button className="icon-button delete-project-button" aria-label="Delete analysis" onClick={() => removeAnalysis(selectedAnalysis.id)}><Trash2 size={15} /></button> : undefined}>
+      <Panel collapsible title={selectedAnalysis ? selectedAnalysis.title : "Repository analysis"} description={selectedAnalysis ? (selectedAnalysis.source === "mine" ? "Analyze and document your own repository." : "Analyze and document someone else’s repository.") : "Select or create an analysis workspace."} action={selectedAnalysis ? <button className="icon-button delete-project-button" aria-label="Delete analysis" onClick={() => removeAnalysis(selectedAnalysis.id)}><Trash2 size={15} /></button> : undefined}>
         {selectedAnalysis ? <>
           <div className="project-detail-meta"><span className="project-status status-in_progress">{selectedAnalysis.source === "mine" ? "My repo" : "External repo"}</span><span>Updated {new Date(selectedAnalysis.updatedAt).toLocaleDateString()}</span></div>
           <div className="project-repo-row"><Github size={15} /><label><span>Repository URL</span><input value={selectedAnalysis.repository} onChange={(event) => updateAnalysis({ repository: event.target.value })} placeholder="https://github.com/owner/repository" /></label>{openUrl && <a href={openUrl} target="_blank" rel="noreferrer" aria-label="Open repository"><ExternalLink size={14} /></a>}</div>

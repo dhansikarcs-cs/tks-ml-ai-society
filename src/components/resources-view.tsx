@@ -114,7 +114,7 @@ export function ResourcesView() {
       <div><span className="summary-icon purple-icon"><BookOpenIcon /></span><span><strong>{resourceData.length} curated resources</strong><small>{completedCount} read · {resourcePoints} point{resourcePoints === 1 ? "" : "s"} earned · across 24 weeks</small></span></div>
       <button className={`small-outline-button ${savedOnly ? "filter-active" : ""}`} onClick={() => setSavedOnly((current) => !current)}><Bookmark size={14} fill={savedOnly ? "currentColor" : "none"} /> Saved resources <span>{bookmarks.length}</span></button>
     </div>
-    <Panel title="Find a resource" description="Resources are selected to complement each week's learning. View them in-app when possible and use the bottom timer to track active reading time.">
+    <Panel collapsible title="Find a resource" description="Resources are selected to complement each week's learning. View them in-app when possible and use the bottom timer to track active reading time.">
       <div className="resource-filters">
         <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search titles, topics, or providers…" /><kbd>{filtered.length}</kbd></label>
         <select value={kind} onChange={(event) => setKind(event.target.value)} aria-label="Filter by resource type">{types.map((type) => <option key={type}>{type}</option>)}</select>
