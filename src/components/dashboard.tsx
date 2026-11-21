@@ -34,6 +34,7 @@ import { createSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabas
 import { useCurriculumData } from "@/lib/use-curriculum";
 import { loadProgress, persistProgressItem } from "@/lib/progress";
 import { ThemeToggle } from "@/lib/theme";
+import { CollapsibleBlock } from "@/components/collapsible";
 
 export default function Dashboard() {
   const { curriculum: curriculumData } = useCurriculumData();
@@ -347,62 +348,81 @@ export default function Dashboard() {
 
           <section className="content-grid">
             <div className="main-feed">
-              <div className="section-heading"><div><h3>This week</h3><p>Your learning, at a comfortable pace.</p></div><button className="text-button" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>View plan <ArrowRight size={14} /></button></div>
-              <article className="focus-card">
-                <div className="focus-topline"><div className="focus-label"><span className="focus-label-dot" /> WEEKLY FOCUS</div><span className="focus-week">{String(currentWeek.week).padStart(2, "0")} / 24</span></div>
-                <div className="focus-body">
-                  <div className="focus-copy"><h4>{currentWeek.topics.slice(0, 3).join(" · ")}</h4><p>{currentWeek.activity}</p><button className="inline-link" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>Explore this week <ArrowRight size={14} /></button></div>
-                  <div className="focus-completion"><div className="completion-ring" style={{ "--progress": `${completedItems * 25}%` } as React.CSSProperties}><div><strong>{completedItems}</strong><span>of 4</span></div></div><span>steps done</span></div>
-                </div>
-                <div className="milestone-list">
-                  {weekKeys.map((item, index) => <button key={item.key} className={`milestone-row ${progress[`week-${currentWeek.week}-${item.key}`] ? "milestone-done" : ""}`} onClick={() => toggleProgress(`week-${currentWeek.week}-${item.key}`)}>
-                    <span className="milestone-check">{progress[`week-${currentWeek.week}-${item.key}`] && <Check size={13} />}</span><span>{item.label}</span>{index === 3 && !progress[`week-${currentWeek.week}-${item.key}`] && <span className="build-tag">WEEKLY BUILD</span>}
-                  </button>)}
-                </div>
-              </article>
+                            <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>This week</h3><p>Your learning, at a comfortable pace.</p></div>} action={<button className="text-button" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>View plan <ArrowRight size={14} /></button>}>
+                <article className="focus-card">
+                  <div className="focus-topline"><div className="focus-label"><span className="focus-label-dot" /> WEEKLY FOCUS</div><span className="focus-week">{String(currentWeek.week).padStart(2, "0")} / 24</span></div>
+                  <div className="focus-body">
+                    <div className="focus-copy"><h4>{currentWeek.topics.slice(0, 3).join(" · ")}</h4><p>{currentWeek.activity}</p><button className="inline-link" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>Explore this week <ArrowRight size={14} /></button></div>
+                    <div className="focus-completion"><div className="completion-ring" style={{ "--progress": `${completedItems * 25}%` } as React.CSSProperties}><div><strong>{completedItems}</strong><span>of 4</span></div></div><span>steps done</span></div>
+                  </div>
+                  <div className="milestone-list">
+                    {weekKeys.map((item, index) => <button key={item.key} className={`milestone-row ${progress[`week-${currentWeek.week}-${item.key}`] ? "milestone-done" : ""}`} onClick={() => toggleProgress(`week-${currentWeek.week}-${item.key}`)}>
+                      <span className="milestone-check">{progress[`week-${currentWeek.week}-${item.key}`] && <Check size={13} />}</span><span>{item.label}</span>{index === 3 && !progress[`week-${currentWeek.week}-${item.key}`] && <span className="build-tag">WEEKLY BUILD</span>}
+                    </button>)}
+                  </div>
+                </article>
 
-              <div className="section-heading activity-heading"><div><h3>Coming up</h3><p>A few things to keep on your radar.</p></div><button className="icon-button" aria-label="More upcoming items" onClick={() => showComingSoon("Upcoming items")}><MoreHorizontal size={19} /></button></div>
-              <div className="upcoming-list">
-                <button className="upcoming-item" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>
-                  <div className="upcoming-date"><strong>01</strong><span>LEARN</span></div>
-                  <div className="upcoming-copy"><div><h4>{currentWeek.lectures[0] ?? currentWeek.readings[0]}</h4><span className="upcoming-type"><span className="type-dot practice-dot" /> Suggested learning</span></div><p>Week {currentWeek.week} <span>·</span> Start anytime</p></div>
-                  <ChevronRight size={17} className="upcoming-arrow" />
-                </button>
-                <button className="upcoming-item" onClick={() => window.location.assign(`/projects?week=${currentWeek.week}`)}>
-                  <div className="upcoming-date due-date"><strong>{String(currentWeek.week).padStart(2, "0")}</strong><span>BUILD</span></div>
-                  <div className="upcoming-copy"><div><h4>{nextAssignment?.title ?? currentWeek.build}</h4><span className="upcoming-type"><span className="type-dot project-dot" /> {pendingAssignmentCount ? `${pendingAssignmentCount} pending assignment${pendingAssignmentCount === 1 ? "" : "s"}` : "Weekly build"}</span></div><p>{nextAssignment?.dueAt ? `Due ${new Date(nextAssignment.dueAt).toLocaleDateString()}` : `Week ${nextAssignment?.week ?? currentWeek.week} · No fixed due date`}</p></div>
-                  <ChevronRight size={17} className="upcoming-arrow" />
-                </button>
-              </div>
-              <div className="section-heading activity-heading"><div><h3>Recent activity</h3><p>Your latest completed focus sessions.</p></div><button className="text-button" onClick={() => window.location.assign("/analytics")}>View analytics <ArrowRight size={13} /></button></div>
-              <div className="recent-dashboard-activity">{recentSessions.length ? recentSessions.map((session) => <div key={session.id}><span className={`recent-activity-icon recent-${session.category}`}><Clock3 size={13} /></span><span><strong>{session.category[0].toUpperCase() + session.category.slice(1)} session</strong><small>{new Date(session.startedAt).toLocaleDateString()} · {formatHours(session.seconds)} hrs</small></span><Check size={13} className="recent-activity-check" /></div>) : <p>When you finish a focus session, it will appear here. Sessions are opt-in and saved on this device.</p>}</div>
+              
+              </CollapsibleBlock>
+
+              <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Coming up</h3><p>A few things to keep on your radar.</p></div>} action={<button className="icon-button" aria-label="More upcoming items" onClick={() => showComingSoon("Upcoming items")}><MoreHorizontal size={19} /></button>}>
+                <div className="upcoming-list">
+                  <button className="upcoming-item" onClick={() => window.location.assign(`/curriculum?week=${currentWeek.week}`)}>
+                    <div className="upcoming-date"><strong>01</strong><span>LEARN</span></div>
+                    <div className="upcoming-copy"><div><h4>{currentWeek.lectures[0] ?? currentWeek.readings[0]}</h4><span className="upcoming-type"><span className="type-dot practice-dot" /> Suggested learning</span></div><p>Week {currentWeek.week} <span>·</span> Start anytime</p></div>
+                    <ChevronRight size={17} className="upcoming-arrow" />
+                  </button>
+                  <button className="upcoming-item" onClick={() => window.location.assign(`/projects?week=${currentWeek.week}`)}>
+                    <div className="upcoming-date due-date"><strong>{String(currentWeek.week).padStart(2, "0")}</strong><span>BUILD</span></div>
+                    <div className="upcoming-copy"><div><h4>{nextAssignment?.title ?? currentWeek.build}</h4><span className="upcoming-type"><span className="type-dot project-dot" /> {pendingAssignmentCount ? `${pendingAssignmentCount} pending assignment${pendingAssignmentCount === 1 ? "" : "s"}` : "Weekly build"}</span></div><p>{nextAssignment?.dueAt ? `Due ${new Date(nextAssignment.dueAt).toLocaleDateString()}` : `Week ${nextAssignment?.week ?? currentWeek.week} · No fixed due date`}</p></div>
+                    <ChevronRight size={17} className="upcoming-arrow" />
+                  </button>
+                </div>
+              
+              </CollapsibleBlock>
+
+              <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Recent activity</h3><p>Your latest completed focus sessions.</p></div>} action={<button className="text-button" onClick={() => window.location.assign("/analytics")}>View analytics <ArrowRight size={13} /></button>}>
+                <div className="recent-dashboard-activity">{recentSessions.length ? recentSessions.map((session) => <div key={session.id}><span className={`recent-activity-icon recent-${session.category}`}><Clock3 size={13} /></span><span><strong>{session.category[0].toUpperCase() + session.category.slice(1)} session</strong><small>{new Date(session.startedAt).toLocaleDateString()} · {formatHours(session.seconds)} hrs</small></span><Check size={13} className="recent-activity-check" /></div>) : <p>When you finish a focus session, it will appear here. Sessions are opt-in and saved on this device.</p>}</div>
+              </CollapsibleBlock>
             </div>
 
             <aside className="right-rail">
-              <article className="target-card">
-                <div className="rail-card-heading"><div><span className="rail-eyebrow">WEEKLY TARGET</span><h3>Make time for learning</h3></div><span className="target-icon"><Target size={17} /></span></div>
-                <div className="target-numbers"><strong>{formatHours(weekSeconds)} <small>hrs</small></strong><span>of {formatHours(targetSeconds)} hours</span></div>
-                <div className="target-track"><span style={{ width: `${weeklyPercent}%` }} /></div>
-                <div className="target-foot"><span>{formatHours(remainingSeconds)} hours to go</span><span>{weeklyPercent}%</span></div>
-                <p className="target-note">{weekSessions.length ? "Small, steady sessions work better than cramming. Keep your pace comfortable." : "Start a focus session when you begin learning. Only your active, visible study time is counted."}</p>
-              </article>
+                            <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Weekly target</h3></div>}>
+  <article className="target-card">
+                  <div className="rail-card-heading"><div><span className="rail-eyebrow">WEEKLY TARGET</span><h3>Make time for learning</h3></div><span className="target-icon"><Target size={17} /></span></div>
+                  <div className="target-numbers"><strong>{formatHours(weekSeconds)} <small>hrs</small></strong><span>of {formatHours(targetSeconds)} hours</span></div>
+                  <div className="target-track"><span style={{ width: `${weeklyPercent}%` }} /></div>
+                  <div className="target-foot"><span>{formatHours(remainingSeconds)} hours to go</span><span>{weeklyPercent}%</span></div>
+                  <p className="target-note">{weekSessions.length ? "Small, steady sessions work better than cramming. Keep your pace comfortable." : "Start a focus session when you begin learning. Only your active, visible study time is counted."}</p>
+                </article>
 
-              <article className="resource-card">
-                <div className="rail-section-title"><div><h3>For this week</h3><p>Curated learning resources</p></div><button className="icon-button" onClick={() => window.location.assign("/resources")} aria-label="See all resources"><ArrowRight size={16} /></button></div>
-                {[resourceOne, resourceTwo].map((resource, index) => <a key={`${resource.url}-${index}`} className="resource-item" href={resource.url} target="_blank" rel="noreferrer">
-                  <span className={`resource-cover ${index === 0 ? "cover-video" : "cover-book"}`}><span>{index === 0 ? <span className="cover-play">↗</span> : "∑"}</span><span className="cover-caption">{resource.kind.toUpperCase()}</span></span>
-                  <span className="resource-copy"><strong>{resource.title}</strong><small>{resource.note ?? resource.kind}<span> · </span>{resource.kind}</small><small className="resource-progress-caption">Week {currentWeek.week} · Suggested</small></span>
-                  <ChevronRight size={16} className="resource-arrow" />
-                </a>)}
-                <button className="shelf-link" onClick={() => window.location.assign("/resources")}>Go to resource library <ArrowRight size={14} /></button>
-              </article>
+              
+              </CollapsibleBlock>
 
-              <article className="announcement-card">
-                <div className="announcement-icon"><Sparkles size={16} /></div>
-                <div><span className="rail-eyebrow">{announcement ? "FROM THE SOCIETY" : "A NOTE ON PACING"}</span><h3>{announcement?.title ?? "Take one concept at a time"}</h3><p>{announcement?.body ?? "There’s no fixed schedule here. Return to your current week whenever you’re ready to continue."}</p><button onClick={() => announcement ? setNotice(`${announcement.title}: ${announcement.body}`) : window.location.assign(`/curriculum?week=${currentWeek.week}`)}>{announcement ? "Read announcement" : "Open your learning path"} <ArrowRight size={13} /></button></div>
-              </article>
+              <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>For this week</h3></div>}>
+  <article className="resource-card">
+                  <div className="rail-section-title"><div><h3>For this week</h3><p>Curated learning resources</p></div><button className="icon-button" onClick={() => window.location.assign("/resources")} aria-label="See all resources"><ArrowRight size={16} /></button></div>
+                  {[resourceOne, resourceTwo].map((resource, index) => <a key={`${resource.url}-${index}`} className="resource-item" href={resource.url} target="_blank" rel="noreferrer">
+                    <span className={`resource-cover ${index === 0 ? "cover-video" : "cover-book"}`}><span>{index === 0 ? <span className="cover-play">↗</span> : "∑"}</span><span className="cover-caption">{resource.kind.toUpperCase()}</span></span>
+                    <span className="resource-copy"><strong>{resource.title}</strong><small>{resource.note ?? resource.kind}<span> · </span>{resource.kind}</small><small className="resource-progress-caption">Week {currentWeek.week} · Suggested</small></span>
+                    <ChevronRight size={16} className="resource-arrow" />
+                  </a>)}
+                  <button className="shelf-link" onClick={() => window.location.assign("/resources")}>Go to resource library <ArrowRight size={14} /></button>
+                </article>
 
-              {lastAchievement && <div className="dashboard-achievement"><span><Award size={16} /></span><div><small>LAST MILESTONE</small><strong>{lastAchievement.title}</strong><p>Earned {new Date(lastAchievement.earnedAt).toLocaleDateString()}</p></div><button onClick={() => window.location.assign("/leaderboard")} aria-label="View achievements"><ArrowRight size={14} /></button></div>}
+              
+              </CollapsibleBlock>
+
+              <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Society note</h3></div>}>
+  <article className="announcement-card">
+                  <div className="announcement-icon"><Sparkles size={16} /></div>
+                  <div><span className="rail-eyebrow">{announcement ? "FROM THE SOCIETY" : "A NOTE ON PACING"}</span><h3>{announcement?.title ?? "Take one concept at a time"}</h3><p>{announcement?.body ?? "There’s no fixed schedule here. Return to your current week whenever you’re ready to continue."}</p><button onClick={() => announcement ? setNotice(`${announcement.title}: ${announcement.body}`) : window.location.assign(`/curriculum?week=${currentWeek.week}`)}>{announcement ? "Read announcement" : "Open your learning path"} <ArrowRight size={13} /></button></div>
+                </article>
+
+              
+              </CollapsibleBlock>
+
+{lastAchievement && <div className="dashboard-achievement"><span><Award size={16} /></span><div><small>LAST MILESTONE</small><strong>{lastAchievement.title}</strong><p>Earned {new Date(lastAchievement.earnedAt).toLocaleDateString()}</p></div><button onClick={() => window.location.assign("/leaderboard")} aria-label="View achievements"><ArrowRight size={14} /></button></div>}
               <div className="privacy-note"><span className="privacy-lock">◈</span><span>Your learning time is an estimate of activity, not attention. <button onClick={() => window.location.assign("/analytics")}>How it works</button></span></div>
             </aside>
           </section>

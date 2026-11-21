@@ -313,3 +313,19 @@ h1, h2, h3, h4, p { margin-top: 0; }
   .focus-topline { padding: 0 12px; }
   .focus-body, .milestone-list { padding-left: 12px; padding-right: 12px; }
 }
+
+
+/* Dashboard collapsible sections */
+.dashboard-collapsible { margin-bottom: 14px; }
+.dashboard-collapsible .collapsible-block-head { margin-bottom: 10px; align-items: center; }
+.dashboard-collapsible .section-heading-copy h3 { margin: 0; font: 600 16px "Manrope",sans-serif; letter-spacing: -.25px; }
+.dashboard-collapsible .section-heading-copy p { margin: 4px 0 0; color: #9293a0; font-size: 13px; line-height: 1.5; }
+.dashboard-collapsible .collapsible-block-toggle { align-items: center; }
+.dashboard-collapsible .collapsible-block-toggle > svg { margin-top: 0; }
+.dashboard-collapsible .collapsible-block-body > .focus-card,
+.dashboard-collapsible .collapsible-block-body > .upcoming-list,
+.dashboard-collapsible .collapsible-block-body > .recent-dashboard-activity,
+.dashboard-collapsible .collapsible-block-body > .target-card,
+.dashboard-collapsible .collapsible-block-body > .resource-card,
+.dashboard-collapsible .collapsible-block-body > .announcement-card { margin: 0; }
+.right-rail .dashboard-collapsible { margin-top: 0; }

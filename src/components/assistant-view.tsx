@@ -6,6 +6,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { ArrowUp, Bot, BookOpen, Check, CircleHelp, KeyRound, Plus, Server, Settings2, Sparkles, TriangleAlert, UserRound } from "lucide-react";
 import { ModuleShell } from "@/components/module-shell";
+import { CollapsibleBlock } from "@/components/collapsible";
 import { curriculum } from "@/lib/curriculum";
 import { readLocal, writeLocal } from "@/lib/local-data";
 
@@ -189,9 +190,13 @@ export function AssistantView() {
             </div>
           </div>}
         </div>}
-        <div className="assistant-context-card"><span className="context-icon"><BookOpen size={16} /></span><span className="context-label">CURRENT CONTEXT</span><h3>Week {week}: {weekInfo.title}</h3><p>{weekInfo.summary}</p><ul>{weekInfo.objectives.slice(0, 3).map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
-        <div className="assistant-context-note"><Sparkles size={15} /><p>Ask for a hint, an analogy, or a small next step. The assistant is instructed not to give complete assessment answers.</p></div>
-        <div className="assistant-history-note"><strong>Conversation history</strong><span>Kept only in this browser. Clear it anytime with “New conversation”.</span></div>
+        <CollapsibleBlock className="assistant-collapsible" title={<span>Current context</span>}>
+          <div className="assistant-context-card"><span className="context-icon"><BookOpen size={16} /></span><span className="context-label">CURRENT CONTEXT</span><h3>Week {week}: {weekInfo.title}</h3><p>{weekInfo.summary}</p><ul>{weekInfo.objectives.slice(0, 3).map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
+        </CollapsibleBlock>
+        <CollapsibleBlock className="assistant-collapsible" title={<span>Tips & history</span>}>
+          <div className="assistant-context-note"><Sparkles size={15} /><p>Ask for a hint, an analogy, or a small next step. The assistant is instructed not to give complete assessment answers.</p></div>
+          <div className="assistant-history-note"><strong>Conversation history</strong><span>Kept only in this browser. Clear it anytime with "New conversation".</span></div>
+        </CollapsibleBlock>
       </aside>
     </div>
   </ModuleShell>;
