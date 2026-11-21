@@ -38,24 +38,33 @@ export function ModuleShell({
   actions?: ReactNode;
 }) {
   const pathname = usePathname();
+  const cached = typeof window !== "undefined" ? (() => { try { return JSON.parse(sessionStorage.getItem("tks-member-shell") || "null") as { signedIn: boolean; isAdmin: boolean; memberName: string } | null; } catch { return null; } })() : null;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [memberName, setMemberName] = useState("");
+  const [signedIn, setSignedIn] = useState(cached?.signedIn ?? false);
+  const [isAdmin, setIsAdmin] = useState(cached?.isAdmin ?? false);
+  const [memberName, setMemberName] = useState(cached?.memberName ?? "");
   const cloudConfigured = isSupabaseConfigured();
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        sessionStorage.removeItem("tks-member-shell");
+        setSignedIn(false); setIsAdmin(false); setMemberName("");
+        return;
+      }
       setSignedIn(true);
       const { data } = await supabase.from("profiles").select("display_name,role,membership_state").eq("id", user.id).maybeSingle();
-      setMemberName(data?.display_name || user.email?.split("@")[0] || "Member");
-      setIsAdmin(data?.role === "admin" && data?.membership_state === "approved");
+      const name = data?.display_name || user.email?.split("@")[0] || "Member";
+      const admin = data?.role === "admin" && data?.membership_state === "approved";
+      setMemberName(name);
+      setIsAdmin(admin);
+      try { sessionStorage.setItem("tks-member-shell", JSON.stringify({ signedIn: true, isAdmin: admin, memberName: name })); } catch {}
     });
   }, []);
 
   async function signOut() {
+    try { sessionStorage.removeItem("tks-member-shell"); } catch {}
     const supabase = createSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
     window.location.assign("/login");
