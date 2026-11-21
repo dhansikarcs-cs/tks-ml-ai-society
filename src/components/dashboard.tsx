@@ -51,6 +51,7 @@ export default function Dashboard() {
   const [memberInitials, setMemberInitials] = useState("LW");
   const [isAdmin, setIsAdmin] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
   const [announcement, setAnnouncement] = useState<{ title: string; body: string } | null>(null);
   const [nextAssignment, setNextAssignment] = useState<{ title: string; week: number; dueAt: string | null } | null>(null);
   const [pendingAssignmentCount, setPendingAssignmentCount] = useState(0);
@@ -95,12 +96,26 @@ export default function Dashboard() {
   }, [curriculumData]);
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setAuthReady(true);
+      return;
+    }
     const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setAuthReady(true);
+      return;
+    }
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        window.location.replace("/login");
+        return;
+      }
       setSignedIn(true);
       const { data } = await supabase.from("profiles").select("display_name,membership_state,role").eq("id", user.id).maybeSingle();
+      if (data?.membership_state && data.membership_state !== "approved") {
+        window.location.replace("/pending");
+        return;
+      }
       if (data?.display_name) {
         setMemberName(data.display_name);
         setMemberInitials(data.display_name.split(/\s+/).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase());
@@ -119,6 +134,7 @@ export default function Dashboard() {
         const upcoming = pending.find((item) => !item.due_at || new Date(item.due_at) >= new Date()) ?? pending[0];
         if (upcoming) setNextAssignment({ title: upcoming.title, week: upcoming.week_id, dueAt: upcoming.due_at });
       }
+      setAuthReady(true);
     });
   }, []);
 
@@ -178,6 +194,10 @@ export default function Dashboard() {
   const formatHours = (seconds: number) => `${(seconds / 3600).toFixed(1)}`;
   const resourceOne = currentWeek.resources[0];
   const resourceTwo = currentWeek.resources[1] ?? currentWeek.resources[0];
+
+  if (!authReady) {
+    return <main className="app-frame" aria-busy="true" aria-label="Loading" style={{ minHeight: "100vh" }} />;
+  }
 
   return (
     <main className="app-frame">
