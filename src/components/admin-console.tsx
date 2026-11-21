@@ -12,6 +12,8 @@ type AdminResource = { id: string; week_id: number | null; title: string; url: s
 type AdminStats = { approved_members: number; active_members_7d: number; active_seconds_7d: number; pending_reviews: number; published_assignments: number };
 type AdminProject = { id: string; user_id: string; week_id: number | null; title: string; description: string; repository_url: string | null; reflection: string; status: string; updated_at: string };
 type SupportRequest = { id: string; user_id: string; category: string; subject: string; message: string; status: "open" | "in_progress" | "resolved"; admin_note: string | null; created_at: string };
+type ProgressRow = { user_id: string; week_id: number; item_key: string; completed: boolean };
+type SessionRow = { user_id: string; active_seconds: number; started_at: string };
 
 export function AdminConsole() {
   const [state, setState] = useState<"loading" | "setup" | "signed-out" | "pending" | "denied" | "ready" | "error">("loading");
@@ -20,7 +22,7 @@ export function AdminConsole() {
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [assignmentTitles, setAssignmentTitles] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"members" | "submissions" | "content" | "analytics" | "support">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "progress" | "submissions" | "content" | "analytics" | "support">("members");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [resources, setResources] = useState<AdminResource[]>([]);
@@ -34,6 +36,8 @@ export function AdminConsole() {
   const [projectFeedbackDrafts, setProjectFeedbackDrafts] = useState<Record<string, string>>({});
   const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
   const [supportNotes, setSupportNotes] = useState<Record<string, string>>({});
+  const [progressRows, setProgressRows] = useState<ProgressRow[]>([]);
+  const [sessionRows, setSessionRows] = useState<SessionRow[]>([]);
 
   const loadAdmin = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -44,7 +48,7 @@ export function AdminConsole() {
     if (profileError) { setState("error"); setMessage(profileError.message); return; }
     if (!own || own.membership_state !== "approved") { setState("pending"); return; }
     if (own.role !== "admin") { setState("denied"); return; }
-    const [{ data: memberRows, error: membersError }, { data: submissionRows }, { data: assignments }, { data: resourceRows }, { data: statRows }, { data: settings }, { data: curriculumRows }, { data: projectRows }, { data: supportRows }] = await Promise.all([
+    const [{ data: memberRows, error: membersError }, { data: submissionRows }, { data: assignments }, { data: resourceRows }, { data: statRows }, { data: settings }, { data: curriculumRows }, { data: projectRows }, { data: supportRows }, { data: progressData }, { data: sessionData }] = await Promise.all([
       supabase.from("profiles").select("id,email,display_name,role,membership_state,created_at").order("created_at", { ascending: false }),
       supabase.from("submissions").select("id,user_id,assignment_id,response,repository_url,status,submitted_at").in("status", ["submitted", "in_review", "reviewed"]).order("submitted_at", { ascending: false }),
       supabase.from("assignments").select("id,title"),
@@ -54,6 +58,8 @@ export function AdminConsole() {
       supabase.from("curriculum_weeks").select("id,title,summary,content"),
       supabase.from("projects").select("id,user_id,week_id,title,description,repository_url,reflection,status,updated_at").order("updated_at", { ascending: false }),
       supabase.from("support_requests").select("id,user_id,category,subject,message,status,admin_note,created_at").order("created_at", { ascending: false }),
+      supabase.from("lesson_progress").select("user_id,week_id,item_key,completed"),
+      supabase.from("learning_sessions").select("user_id,active_seconds,started_at").order("started_at", { ascending: false }).limit(2000),
     ]);
     if (membersError) { setState("error"); setMessage(membersError.message); return; }
     setProfiles((memberRows ?? []) as Profile[]);
@@ -63,6 +69,8 @@ export function AdminConsole() {
     setResources((resourceRows ?? []) as AdminResource[]);
     setStats((statRows ?? null) as AdminStats | null);
     setSupportRequests((supportRows ?? []) as SupportRequest[]);
+    setProgressRows((progressData ?? []) as ProgressRow[]);
+    setSessionRows((sessionData ?? []) as SessionRow[]);
     if (settings?.weights) setLeaderboardWeights((current) => ({ ...current, ...(settings.weights as typeof current) }));
     if (settings) setLeaderboardEnabled(settings.enabled);
     const selected = curriculumRows?.find((row) => Number(row.id) === selectedWeek);
@@ -311,10 +319,26 @@ export function AdminConsole() {
       {state === "setup" || state === "signed-out" ? <a className="primary-button module-action-button" href="/login">Account setup <ShieldCheck size={14} /></a> : null}
     </div> : <>
       <div className="admin-metrics"><div><span><Users size={16} /></span><strong>{profiles.length}</strong><small>Members</small></div><div><span><CircleAlert size={16} /></span><strong>{pendingCount}</strong><small>Awaiting approval</small></div><div><span><ClipboardList size={16} /></span><strong>{submissions.filter((item) => ["submitted", "in_review"].includes(item.status)).length + openSupportCount}</strong><small>Reviews &amp; open requests</small></div></div>
-      <div className="admin-tabs">{(["members", "submissions", "content", "analytics", "support"] as const).map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? "admin-tab-active" : ""}>{tab === "members" ? "Members" : tab === "submissions" ? "Submissions" : tab === "content" ? "Curriculum & updates" : tab === "analytics" ? "Society analytics" : `Support (${openSupportCount})`}</button>)}</div>
+      <div className="admin-tabs">{(["members", "progress", "submissions", "content", "analytics", "support"] as const).map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} className={activeTab === tab ? "admin-tab-active" : ""}>{tab === "members" ? "Members" : tab === "progress" ? "Member progress" : tab === "submissions" ? "Submissions" : tab === "content" ? "Curriculum & updates" : tab === "analytics" ? "Society analytics" : `Support (${openSupportCount})`}</button>)}</div>
       {activeTab === "members" && <Panel title="Member management" description="Approve membership requests and manage access. Role changes require confirmation.">
-        <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search members…" /></label>
+        <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search members..." /></label>
         <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Member</th><th>Status</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead><tbody>{filteredProfiles.map((profile) => <tr key={profile.id}><td><strong>{profile.display_name || "Member"}</strong><small>{profile.email}</small></td><td><span className={`member-state member-${profile.membership_state}`}>{profile.membership_state}</span></td><td><select value={profile.role as "member" | "admin"} onChange={(event) => void changeRole(profile, event.target.value as "member" | "admin")} aria-label={`Change role for ${profile.display_name}`}><option value="member">Member</option><option value="admin">Admin</option></select></td><td>{new Date(profile.created_at).toLocaleDateString()}</td><td>{profile.membership_state === "pending" ? <div className="admin-row-actions"><button onClick={() => void setMembership(profile, "approved")} disabled={busy}><Check size={13} /> Approve</button><button onClick={() => void setMembership(profile, "denied")} disabled={busy}><X size={13} /> Deny</button></div> : profile.membership_state === "denied" ? <button className="admin-row-text-button" onClick={() => void setMembership(profile, "approved")}>Reinstate</button> : <span className="admin-current-status">Active</span>}</td></tr>)}</tbody></table></div>
+        {!filteredProfiles.length && <div className="admin-table-empty">No members match this search.</div>}
+      </Panel>}
+      {activeTab === "progress" && <Panel title="Member progress (admin only)" description="Master view of member learning progress. Only visible to administrators.">
+        <label className="module-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search members..." /></label>
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Member</th><th>Curriculum</th><th>Study time</th><th>Projects</th><th>Submissions</th><th>Last active</th></tr></thead><tbody>{filteredProfiles.map((profile) => {
+          const pRows = progressRows.filter((r) => r.user_id === profile.id && r.completed);
+          const completedWeeks = new Set(pRows.filter((r) => r.item_key === "complete").map((r) => r.week_id)).size;
+          const completedItems = pRows.length;
+          const memberSessions = sessionRows.filter((s) => s.user_id === profile.id);
+          const totalSeconds = memberSessions.reduce((sum, s) => sum + (Number(s.active_seconds) || 0), 0);
+          const lastActive = memberSessions[0]?.started_at;
+          const memberProjects = projects.filter((p) => p.user_id === profile.id).length;
+          const memberSubmissions = submissions.filter((s) => s.user_id === profile.id).length;
+          const pct = Math.round((completedWeeks / 24) * 100);
+          return <tr key={profile.id}><td><strong>{profile.display_name || "Member"}</strong><small>{profile.email}</small></td><td><div className="admin-progress-cell"><strong>{pct}%</strong><small>{completedWeeks}/24 weeks · {completedItems} items</small><div className="admin-progress-bar"><span style={{ width: `${pct}%` }} /></div></div></td><td><strong>{(totalSeconds / 3600).toFixed(1)}h</strong><small>{memberSessions.length} sessions</small></td><td><strong>{memberProjects}</strong></td><td><strong>{memberSubmissions}</strong></td><td><small>{lastActive ? new Date(lastActive).toLocaleDateString() : "No activity"}</small></td></tr>;
+        })}</tbody></table></div>
         {!filteredProfiles.length && <div className="admin-table-empty">No members match this search.</div>}
       </Panel>}
       {activeTab === "submissions" && <div className="admin-review-panels"><Panel title="Assignment submission review" description="Review member explanations and repository submissions; do not infer code you have not inspected.">

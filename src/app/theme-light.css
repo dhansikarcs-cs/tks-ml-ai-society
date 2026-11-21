@@ -479,3 +479,9 @@
   [data-theme="light"] .account-card, [data-theme="light"] .pending-card, [data-theme="light"] .account-flow { padding: 18px; border-radius: 12px; }
   [data-theme="light"] .account-card h1 { font-size: 28px; }
 }
+
+
+.light .admin-progress-cell strong { color: #2b2a33; }
+.light .admin-progress-cell small { color: #676670; }
+.light .admin-progress-bar { background: #dddbe4; }
+.light .admin-progress-bar span { background: linear-gradient(90deg,#7b68d6,#9a8ce8); }
