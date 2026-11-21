@@ -485,3 +485,45 @@
 .light .admin-progress-cell small { color: #676670; }
 .light .admin-progress-bar { background: #dddbe4; }
 .light .admin-progress-bar span { background: linear-gradient(90deg,#7b68d6,#9a8ce8); }
+
+
+/* Light mode login refresh fixes */
+[data-theme="light"] .account-page { background: radial-gradient(ellipse at 50% 30%, #f3f0fb 0%, #f8f8fc 45%, #fcfcfe 100%); }
+[data-theme="light"] .account-brand-mini { color: #3f3b4d; }
+[data-theme="light"] .account-brand-mini svg { color: #6a4fc0; }
+[data-theme="light"] .account-card { background: linear-gradient(180deg, #ffffff 0%, #fbfaff 100%); border-color: #ddd9eb; box-shadow: 0 20px 60px #5540a812; }
+[data-theme="light"] .account-mark { background: #efeafb; border-color: #d7ccef; color: #5b43a8; }
+[data-theme="light"] .account-eyebrow { color: #6a4fc0; }
+[data-theme="light"] .account-card h1 { color: #252331; }
+[data-theme="light"] .account-subtitle, [data-theme="light"] .account-card > p.account-subtitle { color: #5f5c6d; }
+[data-theme="light"] .auth-mode-tabs { background: #f1eef8; border-color: #ddd9eb; }
+[data-theme="light"] .auth-mode-tabs button { color: #666274; background: transparent; }
+[data-theme="light"] .auth-mode-tabs button:hover { color: #2f2b3d; }
+[data-theme="light"] .auth-mode-tabs .auth-mode-active { background: #ffffff; color: #352a5e; box-shadow: inset 0 0 0 1px #d4c9ef; }
+[data-theme="light"] .account-form label, [data-theme="light"] .account-form legend { color: #353243; }
+[data-theme="light"] .account-form input, [data-theme="light"] .account-form select, [data-theme="light"] .account-form textarea { background: #ffffff; border-color: #d8d3e6; color: #282730; }
+[data-theme="light"] .account-form input::placeholder { color: #8a8795; }
+[data-theme="light"] .account-form input:focus, [data-theme="light"] .account-form select:focus, [data-theme="light"] .account-form textarea:focus { border-color: #8f7bd1; box-shadow: 0 0 0 3px #8f7bd120; }
+[data-theme="light"] .auth-password-toggle { color: #706d7d; }
+[data-theme="light"] .auth-password-toggle:hover { color: #352a5e; background: #efeafb; }
+[data-theme="light"] .account-forgot, [data-theme="light"] .account-switch { color: #6247bf; }
+[data-theme="light"] .account-forgot:hover, [data-theme="light"] .account-switch:hover { color: #4b3796; }
+[data-theme="light"] .account-primary { background: #6a4fc0; border-color: #6a4fc0; color: #fff; }
+[data-theme="light"] .account-primary:hover:not(:disabled) { background: #5b43a8; }
+[data-theme="light"] .account-security { color: #676574; border-top-color: #e4dfef; }
+[data-theme="light"] .setup-callout { background: #f7f5fc; border-color: #ddd9eb; color: #5b43a8; }
+[data-theme="light"] .setup-callout strong { color: #352a5e; }
+[data-theme="light"] .setup-callout span { color: #5f5c6d; }
+[data-theme="light"] .form-message { background: #f3effc; border-color: #d7ccef; color: #4b3a7a; }
+[data-theme="light"] .affiliation-fieldset { background: #fbfaff; border-color: #ddd9eb; }
+[data-theme="light"] .affiliation-fieldset legend { color: #353243; }
+[data-theme="light"] .affiliation-option { background: #ffffff; border-color: #ddd9eb; }
+[data-theme="light"] .affiliation-option:hover { border-color: #c9bbe8; background: #faf8ff; }
+[data-theme="light"] .affiliation-option strong { color: #2f2b3d; }
+[data-theme="light"] .affiliation-option small { color: #6b6978; }
+[data-theme="light"] .affiliation-option input[type="radio"] { accent-color: #6a4fc0; }
+[data-theme="light"] .affiliation-option.affiliation-active { background: #f1ecfb; border-color: #b8a5e6; box-shadow: inset 0 0 0 1px #b8a5e6; }
+[data-theme="light"] .affiliation-option.affiliation-active strong { color: #352a5e; }
+[data-theme="light"] .account-flow { background: linear-gradient(160deg, #fbfaff, #f5f3fb 70%); border-color: #ddd9eb; }
+[data-theme="light"] .account-flow h2 { color: #282730; }
+[data-theme="light"] .account-flow-steps p { color: #5f5c6d; }
