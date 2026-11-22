@@ -719,3 +719,13 @@
 [data-theme="light"] .commitment-options > span { color: #67657a; }
 [data-theme="light"] .commitment-pills span { background: #fff; border-color: #ddd9eb; color: #444155; }
 [data-theme="light"] .compulsory-badge { background: rgba(111,106,248,.12); color: #5b56d6; }
+
+
+/* Curriculum sidebar toggle */
+.curriculum-layout-tools { display: flex; justify-content: flex-end; margin: 0 0 10px; }
+.curriculum-layout.sidebar-hidden { grid-template-columns: minmax(0, 1fr) !important; }
+.curriculum-layout.sidebar-hidden .curriculum-detail { max-width: 100%; }
+@media (max-width: 980px) {
+  .curriculum-layout-tools { justify-content: stretch; }
+  .curriculum-layout-tools .small-outline-button { width: 100%; justify-content: center; }
+}

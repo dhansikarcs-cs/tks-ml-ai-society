@@ -27,6 +27,7 @@ export function CurriculumView() {
   const [openPhase, setOpenPhase] = useState(1);
   const [query, setQuery] = useState("");
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setProgress(readLocal("curriculum-progress", {}));
@@ -83,8 +84,9 @@ export function CurriculumView() {
       <div><span className="curriculum-summary-icon"><BookOpen size={16} /></span><span><strong>{completedWeeks} of 24 weeks complete</strong><small>Practice-focused progress, saved in your browser and synced for approved members.</small></span></div>
       <div className="curriculum-progress-copy"><span>Overall progress</span><strong>{completionPercent}%</strong><div className="curriculum-progress-track"><i style={{ width: `${completionPercent}%` }} /></div></div>
     </div>
-    <div className="curriculum-layout">
-      <Panel collapsible title="Phase overview" description="Expand a phase and choose a week.">
+    <div className="curriculum-layout-tools"><button type="button" className="small-outline-button" onClick={() => setSidebarOpen((v) => !v)}>{sidebarOpen ? "Hide week list" : "Show week list"}</button></div>
+    <div className={`curriculum-layout ${sidebarOpen ? "" : "sidebar-hidden"}`.trim()}>
+      {sidebarOpen && <Panel collapsible title="Phase overview" description="Expand a phase and choose a week.">
         <label className="module-search" aria-label="Search curriculum"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search weeks, topics, or builds" /></label>
         <div className="phase-list">
           {phases.map((phase) => {
@@ -108,7 +110,7 @@ export function CurriculumView() {
             </div>;
           })}
         </div>
-      </Panel>
+      </Panel>}
       <div className="curriculum-detail">
         <WeekDetail
           key={selected.week}
