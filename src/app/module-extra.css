@@ -812,3 +812,21 @@
 [data-theme="light"] .week-planner-chip { background: #efe9ff; color: #433466; }
 [data-theme="light"] .week-planner-chip button { color: #6b6285; }
 [data-theme="light"] .week-planner-add { border-color: #cfc5ea; color: #5b5670; }
+
+/* Daily ML/AI news */
+.daily-news-list { display: grid; gap: 8px; }
+.daily-news-item { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid #2f2d38; color: inherit; text-decoration: none; }
+.daily-news-item:last-child { border-bottom: 0; padding-bottom: 0; }
+.daily-news-dot { width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: #7c6cf0; box-shadow: 0 0 0 4px #7c6cf022; }
+.daily-news-copy { min-width: 0; display: grid; gap: 2px; }
+.daily-news-copy strong { color: #eceaf2; font-size: 13px; line-height: 1.45; font-weight: 600; }
+.daily-news-copy small { color: #9b9aa3; font-size: 12px; }
+.daily-news-arrow { color: #8a8794; margin-top: 2px; flex: 0 0 auto; }
+.daily-news-item:hover .daily-news-copy strong { color: #fff; }
+.daily-news-item:hover .daily-news-arrow { color: #cfcde0; }
+[data-theme="light"] .daily-news-item { border-bottom-color: #e3e0ee; }
+[data-theme="light"] .daily-news-dot { background: #6f5bd6; box-shadow: 0 0 0 4px #6f5bd61a; }
+[data-theme="light"] .daily-news-copy strong { color: #211f2b; }
+[data-theme="light"] .daily-news-copy small { color: #655f72; }
+[data-theme="light"] .daily-news-arrow { color: #7b7690; }
+[data-theme="light"] .daily-news-item:hover .daily-news-copy strong { color: #4b35a8; }

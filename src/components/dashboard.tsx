@@ -57,6 +57,8 @@ export default function Dashboard() {
   const [nextAssignment, setNextAssignment] = useState<{ title: string; week: number; dueAt: string | null } | null>(null);
   const [pendingAssignmentCount, setPendingAssignmentCount] = useState(0);
   const [lastAchievement, setLastAchievement] = useState<{ title: string; earnedAt: string } | null>(null);
+  const [news, setNews] = useState<{ title: string; link: string; source: string; publishedAt: string }[]>([]);
+  const [newsStatus, setNewsStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
     setTodayLabel(new Intl.DateTimeFormat("en", {
@@ -137,6 +139,16 @@ export default function Dashboard() {
       }
       setAuthReady(true);
     });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/news").then((r) => r.json()).then((data) => {
+      if (!active) return;
+      setNews(Array.isArray(data?.items) ? data.items : []);
+      setNewsStatus("ready");
+    }).catch(() => { if (active) setNewsStatus("error"); });
+    return () => { active = false; };
   }, []);
 
   const showComingSoon = (section: string) => {
@@ -379,6 +391,19 @@ export default function Dashboard() {
                   </button>
                 </div>
               
+              </CollapsibleBlock>
+
+              <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Today in ML &amp; AI</h3><p>Fresh headlines from the last 24 hours.</p></div>} action={<span className="text-button" style={{ cursor: "default" }}><Sparkles size={13} /> Live feed</span>}>
+                <div className="daily-news-list">
+                  {newsStatus === "loading" && <p className="module-muted">Loading today’s ML &amp; AI news…</p>}
+                  {newsStatus === "error" && <p className="module-muted">Couldn’t load news right now. Try again later.</p>}
+                  {newsStatus === "ready" && news.length === 0 && <p className="module-muted">No major headlines found right now. Check back soon.</p>}
+                  {newsStatus === "ready" && news.map((item) => <a key={item.link} className="daily-news-item" href={item.link} target="_blank" rel="noreferrer">
+                    <span className="daily-news-dot" aria-hidden />
+                    <span className="daily-news-copy"><strong>{item.title}</strong><small>{item.source} · {new Date(item.publishedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></span>
+                    <ArrowRight size={14} className="daily-news-arrow" />
+                  </a>)}
+                </div>
               </CollapsibleBlock>
 
               <CollapsibleBlock className="dashboard-collapsible" title={<div className="section-heading-copy"><h3>Recent activity</h3><p>Your latest completed focus sessions.</p></div>} action={<button className="text-button" onClick={() => window.location.assign("/analytics")}>View analytics <ArrowRight size={13} /></button>}>
