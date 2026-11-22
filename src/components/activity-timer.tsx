@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock3, Coffee, GripVertical, Pause, Play, RotateCcw, Square, X } from "lucide-react";
@@ -312,11 +312,11 @@ export function ActivityTimer() {
   }
 
   function onDragPointerMove(e: React.PointerEvent) {
-    const d = dragRef.current as any;
+    const d = dragRef.current;
     if (!d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
-    if (!d.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    if (!d.moved && Math.abs(dx) + Math.abs(dy) < 10) return;
     if (!d.captured) {
       try { (e.currentTarget as HTMLElement).setPointerCapture(d.pointerId); d.captured = true; } catch {}
     }
@@ -327,7 +327,7 @@ export function ActivityTimer() {
   }
 
   function onDragPointerUp(e: React.PointerEvent) {
-    const d = dragRef.current as any;
+    const d = dragRef.current;
     if (!d) return;
     const moved = !!d.moved;
     const captured = !!d.captured;
@@ -353,7 +353,7 @@ export function ActivityTimer() {
   }
 
   function onDragPointerCancel() {
-    const d = dragRef.current as any;
+    const d = dragRef.current;
     if (!d) return;
     dragRef.current = null;
     setDragging(false);
@@ -378,8 +378,8 @@ export function ActivityTimer() {
             <div className="activity-timer-info">
               <strong>{formatDuration(seconds)}</strong>
               <small>
-                {onBreak ? `Break time — ${formatDuration(breakLeft)} left. Stretch, rest your eyes.` :
-                 running ? (idle ? "Paused — move mouse/scroll/type to track active time" : `Tracking ${category} time`) :
+                {onBreak ? `Break time â€” ${formatDuration(breakLeft)} left. Stretch, rest your eyes.` :
+                 running ? (idle ? "Paused â€” move mouse/scroll/type to track active time" : `Tracking ${category} time`) :
                  seconds > 0 ? "Timer paused" : "Pick an activity, start timer, and stay active to track time"}
               </small>
             </div>
@@ -396,7 +396,7 @@ export function ActivityTimer() {
 
           {showReflection ? (
             <div className="timer-reflection">
-              <strong>Before saving — quick reflection</strong>
+              <strong>Before saving â€” quick reflection</strong>
               <p className="module-muted">What did you work on? Write it in your own words. This helps keep your progress real and meaningful.</p>
               <textarea value={reflection} onChange={(e) => setReflection(e.target.value)} rows={3} placeholder="e.g. I practiced linear regression, debugged my notebook, and summarized key formulas..." />
               <label className="timer-human-check">
