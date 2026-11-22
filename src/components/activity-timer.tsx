@@ -52,7 +52,7 @@ export function ActivityTimer() {
   const lastActivity = useRef(Date.now());
   const draftRef = useRef<Draft | null>(null);
   const secondsRef = useRef(0);
-  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number; moved?: boolean } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number; moved?: boolean; pointerId: number; captured: boolean } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const didDragRef = useRef(false);
   const streakRef = useRef(0);
@@ -308,16 +308,18 @@ export function ActivityTimer() {
     const el = rootRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top, moved: false };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top, moved: false, pointerId: e.pointerId, captured: false };
   }
 
   function onDragPointerMove(e: React.PointerEvent) {
-    const d = dragRef.current;
+    const d = dragRef.current as any;
     if (!d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    if (!d.captured) {
+      try { (e.currentTarget as HTMLElement).setPointerCapture(d.pointerId); d.captured = true; } catch {}
+    }
     d.moved = true;
     didDragRef.current = true;
     if (!dragging) setDragging(true);
@@ -325,9 +327,10 @@ export function ActivityTimer() {
   }
 
   function onDragPointerUp(e: React.PointerEvent) {
-    const d = dragRef.current;
+    const d = dragRef.current as any;
     if (!d) return;
     const moved = !!d.moved;
+    const captured = !!d.captured;
     dragRef.current = null;
     setDragging(false);
     if (moved) {
@@ -336,13 +339,23 @@ export function ActivityTimer() {
     } else {
       didDragRef.current = false;
     }
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    if (captured) {
+      try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    }
+  }
+
+  function onDragPointerCancel() {
+    const d = dragRef.current as any;
+    if (!d) return;
+    dragRef.current = null;
+    setDragging(false);
+    didDragRef.current = false;
   }
 
   const posStyle: React.CSSProperties = pos ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" } : {};
 
   return (
-    <div ref={rootRef} className={`activity-timer-root ${open ? "activity-timer-open" : "activity-timer-collapsed"} ${dragging ? "is-dragging" : ""} ${pos ? "is-moved" : ""}`} style={posStyle} aria-live="polite" onPointerDown={onDragPointerDown} onPointerMove={onDragPointerMove} onPointerUp={onDragPointerUp}>
+    <div ref={rootRef} className={`activity-timer-root ${open ? "activity-timer-open" : "activity-timer-collapsed"} ${dragging ? "is-dragging" : ""} ${pos ? "is-moved" : ""}`} style={posStyle} aria-live="polite" onPointerDown={onDragPointerDown} onPointerMove={onDragPointerMove} onPointerUp={onDragPointerUp} onPointerCancel={onDragPointerCancel}>
       {!open ? (
         <button className={`activity-timer-fab ${running ? "is-running" : ""} ${onBreak ? "is-break" : ""}`} onClick={toggleOpen} title="Activity timer" aria-label="Open activity timer">
           <Clock3 size={16} />
