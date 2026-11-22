@@ -62,7 +62,8 @@ export function AccountSettings() {
     let { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     let avatarWarning = "";
     if (error && /avatar_url|schema cache/i.test(error.message)) {
-      const { avatar_url: _omit, ...withoutAvatar } = payload;
+      const withoutAvatar = { ...payload };
+      delete withoutAvatar.avatar_url;
       const retry = await supabase.from("profiles").update(withoutAvatar).eq("id", user.id);
       error = retry.error;
       if (!error) avatarWarning = " Profile photo URL wasn't saved yet - apply migration 0004_profile_avatar.sql in Supabase.";

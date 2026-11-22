@@ -199,7 +199,7 @@ export function AssistantView() {
         </CollapsibleBlock>
         <CollapsibleBlock className="assistant-collapsible" title={<span>Tips & history</span>}>
           <div className="assistant-context-note"><Sparkles size={15} /><p>Ask for a hint, an analogy, or a small next step. The assistant is instructed not to give complete assessment answers.</p></div>
-          <div className="assistant-history-note"><strong>Conversation history</strong><span>Kept only in this browser. Clear it anytime with "New conversation".</span></div>
+          <div className="assistant-history-note"><strong>Conversation history</strong><span>Kept only in this browser. Clear it anytime with &ldquo;New conversation&rdquo;.</span></div>
         </CollapsibleBlock>
       </aside>
     </div>
