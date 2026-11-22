@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Clock3, Pause, Play, RotateCcw, Save, X } from "lucide-react";
+import { Clock3, GripVertical, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { readLocal, writeLocal, type StudySession } from "@/lib/local-data";
 import { persistStudySession } from "@/lib/progress";
 
@@ -16,6 +16,7 @@ type Draft = {
 const IDLE_LIMIT_MS = 90 * 1000;
 const KEY = "global-reading-timer";
 const OPEN_KEY = "global-reading-timer-open";
+const POS_KEY = "global-reading-timer-pos";
 
 function formatDuration(seconds: number) {
   const h = Math.floor(seconds / 3600);
@@ -32,10 +33,16 @@ export function ActivityTimer() {
   const [seconds, setSeconds] = useState(0);
   const [idle, setIdle] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
+  const [category, setCategory] = useState<StudySession["category"]>("reading");
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const lastTick = useRef(0);
   const lastActivity = useRef(Date.now());
   const draftRef = useRef<Draft | null>(null);
   const secondsRef = useRef(0);
+  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const didDragRef = useRef(false);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -46,10 +53,13 @@ export function ActivityTimer() {
 
   useEffect(() => {
     setOpen(readLocal<boolean>(OPEN_KEY, false));
+    const storedPos = readLocal<{ x: number; y: number } | null>(POS_KEY, null);
+    if (storedPos && typeof storedPos.x === "number" && typeof storedPos.y === "number") setPos(storedPos);
     const stored = readLocal<Draft | null>(KEY, null);
     if (stored) {
       setDraft({ ...stored, running: false });
       setSeconds(stored.seconds || 0);
+      setCategory(stored.category || "reading");
       setIdle(true);
     }
   }, []);
@@ -107,6 +117,7 @@ export function ActivityTimer() {
   }, [persistDraft]);
 
   function toggleOpen() {
+    if (didDragRef.current) { didDragRef.current = false; return; }
     setOpen((v) => {
       const next = !v;
       writeLocal(OPEN_KEY, next);
@@ -115,7 +126,7 @@ export function ActivityTimer() {
   }
 
   function start() {
-    const next: Draft = { startedAt: new Date().toISOString(), seconds: secondsRef.current || 0, running: true, category: "reading", lastActiveAt: Date.now() };
+    const next: Draft = { startedAt: new Date().toISOString(), seconds: secondsRef.current || 0, running: true, category, lastActiveAt: Date.now() };
     lastTick.current = Date.now();
     lastActivity.current = Date.now();
     setIdle(false);
@@ -147,7 +158,7 @@ export function ActivityTimer() {
         category: d.category || "reading",
       };
       void persistStudySession(entry);
-      setSavedMsg(`Saved ${formatDuration(secs)} reading session.`);
+      setSavedMsg(`Saved ${formatDuration(secs)} ${entry.category} session.`);
       window.setTimeout(() => setSavedMsg(""), 4000);
     }
     setDraft(null);
@@ -171,8 +182,64 @@ export function ActivityTimer() {
   const running = !!draft?.running;
   const activeTracking = running && !idle;
 
+  function clampPos(x: number, y: number) {
+    const el = rootRef.current;
+    const w = el?.offsetWidth ?? 280;
+    const h = el?.offsetHeight ?? 56;
+    const maxX = Math.max(8, window.innerWidth - w - 8);
+    const maxY = Math.max(8, window.innerHeight - h - 8);
+    return { x: Math.min(maxX, Math.max(8, x)), y: Math.min(maxY, Math.max(8, y)) };
+  }
+
+  function onDragPointerDown(e: React.PointerEvent) {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    // Allow dragging from the FAB button itself, but not from action buttons/inputs inside the open bar
+    const inAction = target.closest(".activity-timer-actions button, .activity-timer-actions input, .activity-timer-actions select, .activity-timer-actions a, .timer-icon-btn, .timer-btn");
+    if (inAction) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top, moved: false } as any;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onDragPointerMove(e: React.PointerEvent) {
+    const d = dragRef.current as any;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!d.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    d.moved = true;
+    didDragRef.current = true;
+    if (!dragging) setDragging(true);
+    const next = clampPos(d.originX + dx, d.originY + dy);
+    setPos(next);
+  }
+
+  function onDragPointerUp(e: React.PointerEvent) {
+    const d = dragRef.current as any;
+    if (!d) return;
+    const moved = !!d.moved;
+    dragRef.current = null;
+    setDragging(false);
+    if (moved) {
+      setPos((cur) => {
+        if (cur) writeLocal(POS_KEY, cur);
+        return cur;
+      });
+      // suppress the click that follows a drag
+      window.setTimeout(() => { didDragRef.current = false; }, 0);
+    } else {
+      didDragRef.current = false;
+    }
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  }
+
+  const posStyle: React.CSSProperties = pos ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" } : {};
+
   return (
-    <div className={`activity-timer-root ${open ? "activity-timer-open" : "activity-timer-collapsed"}`} aria-live="polite">
+    <div ref={rootRef} className={`activity-timer-root ${open ? "activity-timer-open" : "activity-timer-collapsed"} ${dragging ? "is-dragging" : ""} ${pos ? "is-moved" : ""}`} style={posStyle} aria-live="polite" onPointerDown={onDragPointerDown} onPointerMove={onDragPointerMove} onPointerUp={onDragPointerUp}>
       {!open ? (
         <button className={`activity-timer-fab ${running ? "is-running" : ""}`} onClick={toggleOpen} title="Reading/activity timer" aria-label="Open reading timer">
           <Clock3 size={16} />
@@ -181,6 +248,7 @@ export function ActivityTimer() {
         </button>
       ) : (
         <div className="activity-timer-bar" role="region" aria-label="Reading and activity timer">
+          <div className="timer-drag-handle" aria-hidden title="Drag to move"><GripVertical size={14} /></div>
           <div className="activity-timer-main">
             <span className={`timer-status-dot ${activeTracking ? "active" : running ? "paused" : "idle"}`} aria-hidden />
             <div className="activity-timer-info">
@@ -191,6 +259,15 @@ export function ActivityTimer() {
             </div>
           </div>
           <div className="activity-timer-actions">
+            <label className="timer-category-label">
+              <span className="sr-only">Activity type</span>
+              <select className="timer-category-select" value={category} onChange={(e) => { const c = e.target.value as StudySession["category"]; setCategory(c); const d = draftRef.current; if (d) { const next = { ...d, category: c }; setDraft(next); draftRef.current = next; persistDraft(next); } }}>
+                <option value="reading">Reading</option>
+                <option value="lesson">Lesson</option>
+                <option value="coding">Coding</option>
+                <option value="research">Research</option>
+              </select>
+            </label>
             {!running ? (
               <button className="small-outline-button timer-btn" onClick={start}><Play size={14} /> {seconds > 0 ? "Resume" : "Start"}</button>
             ) : (

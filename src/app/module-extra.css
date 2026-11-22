@@ -397,20 +397,25 @@
 .resource-viewer-frame { width: 100%; height: 100%; border: 1px solid #34353a; border-radius: 8px; background: #fff; }
 
 /* Global bottom activity timer */
-.activity-timer-root { position: fixed; right: 14px; bottom: 14px; z-index: 70; }
+.activity-timer-root { position: fixed; right: 14px; bottom: 14px; z-index: 70; touch-action: none; user-select: none; }
+.activity-timer-root.is-dragging { cursor: grabbing; z-index: 90; }
+.activity-timer-root.is-moved { right: auto; bottom: auto; }
 .activity-timer-fab {
   display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 12px;
   border: 1px solid #4a4260; border-radius: 999px; background: #252238; color: #e4def7;
-  font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 24px #0006;
+  font-size: 12px; font-weight: 600; cursor: grab; box-shadow: 0 8px 24px #0006;
 }
+.activity-timer-root.is-dragging .activity-timer-fab { cursor: grabbing; }
 .activity-timer-fab:hover { border-color: #6a5b90; background: #2d2842; }
 .activity-timer-fab.is-running { border-color: #5f8f6a; background: #223027; color: #d9f0de; }
 .timer-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #7ed996; box-shadow: 0 0 0 4px #7ed99622; }
 .activity-timer-bar {
   display: flex; flex-direction: column; gap: 8px; width: min(560px, calc(100vw - 28px));
   padding: 10px 12px; border: 1px solid #3a3548; border-radius: 12px; background: #1a1b1f;
-  box-shadow: 0 12px 36px #0008;
+  box-shadow: 0 12px 36px #0008; cursor: grab;
 }
+.activity-timer-root.is-dragging .activity-timer-bar { cursor: grabbing; }
+.timer-drag-handle { display: inline-flex; align-items: center; color: #94939b; flex: 0 0 auto; margin-right: -2px; }
 .activity-timer-main { display: flex; align-items: center; gap: 10px; }
 .timer-status-dot { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: #666; }
 .timer-status-dot.active { background: #7ed996; box-shadow: 0 0 0 4px #7ed99622; }
@@ -423,9 +428,15 @@
 .timer-btn { min-height: 32px; }
 .timer-icon-btn { width: 32px; height: 32px; }
 .timer-saved-msg { color: #8fc79a; font-size: 12px; }
+.timer-category-label { display: inline-flex; align-items: center; }
+.timer-category-select { min-height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid #3a3548; background: #23222a; color: #e4e2ec; font: inherit; font-size: 12px; cursor: pointer; }
+.timer-category-select:focus { outline: 2px solid #6a5b90; outline-offset: 1px; }
+[data-theme="light"] .timer-category-select { border-color: #ddd9eb; background: #fff; color: #2c2838; }
+
 @media (max-width: 650px) {
-  .activity-timer-root { left: 10px; right: 10px; bottom: 10px; }
-  .activity-timer-bar { width: 100%; }
+  .activity-timer-root:not(.is-moved) { left: 10px; right: 10px; bottom: 10px; }
+  .activity-timer-root:not(.is-moved) .activity-timer-bar { width: 100%; }
+  .activity-timer-root.is-moved .activity-timer-bar { max-width: calc(100vw - 20px); }
   .resource-viewer-header { padding: 10px; }
   .resource-viewer-frame-wrap { padding: 6px; }
   .resource-viewer-actions .small-outline-button { font-size: 12px; padding: 0 8px; }
