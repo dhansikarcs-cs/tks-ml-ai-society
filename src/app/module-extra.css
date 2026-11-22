@@ -729,3 +729,13 @@
   .curriculum-layout-tools { justify-content: stretch; }
   .curriculum-layout-tools .small-outline-button { width: 100%; justify-content: center; }
 }
+
+
+/* Collapsible detail sections */
+.detail-section-toggle { width: 100%; display: flex; align-items: center; gap: 8px; padding: 0; margin: 0 0 10px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; }
+.detail-section-toggle h3 { margin: 0; display: inline-flex; align-items: center; gap: 8px; }
+.detail-section-toggle > svg { flex: 0 0 15px; color: #94939b; transition: transform .15s ease; }
+.detail-section-toggle > svg.is-collapsed { transform: rotate(-90deg); }
+.detail-section.is-collapsed .detail-section-toggle { margin-bottom: 0; }
+.detail-section-body { min-width: 0; }
+[data-theme="light"] .detail-section-toggle > svg { color: #6b6978; }

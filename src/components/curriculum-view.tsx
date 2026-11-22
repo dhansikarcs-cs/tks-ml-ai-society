@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -259,58 +259,69 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     </div>
 
     {detailTab === "overview" && <div className="week-detail-content">
-      <section className="detail-section"><h3>By the end of this week</h3><ul className="objective-list">{week.objectives.map((objective) => <li key={objective}><CheckCircle2 size={15} />{objective}</li>)}</ul></section>
-      <section className="detail-section commitment-section"><h3><Clock3 size={15} /> Weekly commitment</h3><p className="module-muted"><strong>{week.estimatedHours} hours total</strong> this week. Flexible plan: {week.dailyCommitment}</p><div className="commitment-options"><span>Pick what fits your day:</span><div className="commitment-pills"><span>30 min</span><span>45 min</span><span>1 hr</span><span>Flexible split</span></div></div></section>
-      <section className="detail-section"><h3>Exact topics to cover this week</h3><p className="module-muted">Focus on these specific topics — don&apos;t keep it vague.</p><ul className="objective-list exact-topic-list">{week.exactTopics.map((topic) => <li key={topic}><CheckCircle2 size={15} />{topic}</li>)}</ul></section>
-      <section className="detail-section"><h3>Topics &amp; ideas</h3><div className="topic-pills">{week.topics.map((topic) => <span key={topic}>{topic}</span>)}</div></section>
-      <section className="detail-section math-section"><h3>Mathematical foundations</h3><ul>{week.mathematics.map((item) => <li key={item}><MathLine value={item} /></li>)}</ul></section>
-      <section className="detail-section"><h3>Technical vocabulary</h3><div className="vocab-list">{week.vocabulary.map((term) => <span key={term}>{term}</span>)}</div></section>
-      <section className="detail-section"><h3>Learn &amp; practice</h3>
+      <DetailSection title="By the end of this week"><ul className="objective-list">{week.objectives.map((objective) => <li key={objective}><CheckCircle2 size={15} />{objective}</li>)}</ul></DetailSection>
+      <DetailSection title={<><Clock3 size={15} /> Weekly commitment</>} className="commitment-section"><p className="module-muted"><strong>{week.estimatedHours} hours total</strong> this week. Flexible plan: {week.dailyCommitment}</p><div className="commitment-options"><span>Pick what fits your day:</span><div className="commitment-pills"><span>30 min</span><span>45 min</span><span>1 hr</span><span>Flexible split</span></div></div></DetailSection>
+      <DetailSection title="Exact topics to cover this week"><p className="module-muted">Focus on these specific topics — don&apos;t keep it vague.</p><ul className="objective-list exact-topic-list">{week.exactTopics.map((topic) => <li key={topic}><CheckCircle2 size={15} />{topic}</li>)}</ul></DetailSection>
+      <DetailSection title="Topics &amp; ideas"><div className="topic-pills">{week.topics.map((topic) => <span key={topic}>{topic}</span>)}</div></DetailSection>
+      <DetailSection title="Mathematical foundations" className="math-section"><ul>{week.mathematics.map((item) => <li key={item}><MathLine value={item} /></li>)}</ul></DetailSection>
+      <DetailSection title="Technical vocabulary"><div className="vocab-list">{week.vocabulary.map((term) => <span key={term}>{term}</span>)}</div></DetailSection>
+      <DetailSection title="Learn &amp; practice">
         {week.lectures.length > 0 && <p className="resource-lines"><strong>Lectures</strong>{week.lectures.join(" · ")}</p>}
         {week.readings.length > 0 && <p className="resource-lines"><strong>Reading</strong>{week.readings.join(" · ")}</p>}
         {week.paper && <p className="resource-lines"><strong>Research paper</strong>{week.paper}</p>}
         <p className="resource-lines"><strong>Coding practice</strong>{week.coding.join(" · ")}</p>
         <p className="activity-callout"><span>TRY IT</span>{week.activity}</p>
-      </section>
-      <section className="detail-section assignment-box"><div><span>WEEKLY BUILD</span><h3>{week.build}</h3><p>{week.assignment}</p></div><Link className="small-outline-button" href={`/projects?week=${week.week}`}>Open project lab <ArrowRight size={14} /></Link></section>
+      </DetailSection>
+      <DetailSection title="Weekly build" className="assignment-box"><div><span>WEEKLY BUILD</span><h3>{week.build}</h3><p>{week.assignment}</p></div><Link className="small-outline-button" href={`/projects?week=${week.week}`}>Open project lab <ArrowRight size={14} /></Link></DetailSection>
       <div className="week-checklist"><div><h3>Your weekly checklist</h3><span>{completedItems} of {checklist.length} complete</span></div>{checklist.map((item) => <label key={item.id} className="curriculum-check-row"><input type="checkbox" checked={Boolean(progress[`week-${week.week}-${item.id}`])} onChange={(event) => setItem(`week-${week.week}-${item.id}`, event.target.checked)} /><span className="curriculum-check-visual">{progress[`week-${week.week}-${item.id}`] && <Check size={12} />}</span><span><strong>{item.title}</strong><small>{item.meta}</small></span></label>)}</div>
       <button className={`complete-week-button ${weekDone ? "week-is-complete" : ""}`} onClick={toggleWeek}>{weekDone ? <><CheckCircle2 size={16} /> Week marked complete</> : <>Mark week complete <ArrowRight size={15} /></>}</button>
       <p className="progress-save-note">Progress is saved locally in this browser and can sync for approved members when signed in.</p>
     </div>}
 
-    {detailTab === "resources" && <div className="week-detail-content"><div className="detail-section"><h3>Curated for week {week.week}</h3><p className="module-muted">Resources marked <strong>Compulsory</strong> are required for this week. Others are optional but helpful.</p><div className="week-resource-list">{week.resources.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title} {resource.compulsory && <span className="compulsory-badge">Compulsory</span>}</strong><small>{resource.kind}{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div><Link href={`/resources?week=${week.week}`} className="inline-module-link">Browse the full resource library <ArrowRight size={14} /></Link></div></div>}
+    {detailTab === "resources" && <div className="week-detail-content"><DetailSection title={`Curated for week ${week.week}`}><p className="module-muted">Resources marked <strong>Compulsory</strong> are required for this week. Others are optional but helpful.</p><div className="week-resource-list">{week.resources.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title} {resource.compulsory && <span className="compulsory-badge">Compulsory</span>}</strong><small>{resource.kind}{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div><Link href={`/resources?week=${week.week}`} className="inline-module-link">Browse the full resource library <ArrowRight size={14} /></Link></DetailSection></div>}
 
-    {detailTab === "assessment" && <div className="week-detail-content"><div className="detail-section"><h3>Quick understanding check</h3><p className="module-muted">Answer in your own words. This practice check is not graded.</p><div className="assessment-list">{week.assessment.map((question, index) => { const key = `week-${week.week}-question-${index}`; return <label key={question} className="assessment-row"><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{question}</strong><textarea value={answers[key] ?? ""} onChange={(event) => setAnswer(key, event.target.value)} placeholder="Jot down your explanation…" rows={2} /></div></label>; })}</div><p className="progress-save-note">Practice responses are saved in this browser, not submitted or graded.</p></div></div>}
+    {detailTab === "assessment" && <div className="week-detail-content"><DetailSection title="Quick understanding check"><p className="module-muted">Answer in your own words. This practice check is not graded.</p><div className="assessment-list">{week.assessment.map((question, index) => { const key = `week-${week.week}-question-${index}`; return <label key={question} className="assessment-row"><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{question}</strong><textarea value={answers[key] ?? ""} onChange={(event) => setAnswer(key, event.target.value)} placeholder="Jot down your explanation…" rows={2} /></div></label>; })}</div><p className="progress-save-note">Practice responses are saved in this browser, not submitted or graded.</p></DetailSection></div>}
 
     {detailTab === "ideas" && <div className="week-detail-content">
-      <section className="detail-section"><h3><Sparkles size={15} /> AI prompts for this week</h3><p className="module-muted">Use these prompts in your own AI (ChatGPT, Gemini, Claude, local model, etc.) or open them directly in our AI assistant.</p><div className="week-ai-prompts">{aiPrompts.map((item) => <div key={item.label} className="week-ai-prompt-card"><div className="week-ai-prompt-head"><strong>{item.label}</strong><div className="week-ai-prompt-actions"><button type="button" className="small-outline-button" onClick={() => void copyPrompt(item.prompt, item.label)}><Copy size={13} /> {copiedPrompt === item.label ? "Copied" : "Copy prompt"}</button><Link className="small-outline-button" href={`/assistant?prompt=${encodeURIComponent(item.prompt)}`}><Bot size={13} /> Open in AI assistant</Link></div></div><p>{item.prompt}</p></div>)}</div></section>
-      <section className="detail-section"><h3><Lightbulb size={15} /> What to build this week (ideas & examples)</h3><ul className="idea-list">{buildIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href={`/projects?week=${week.week}`}>Start building in Project lab <ArrowRight size={14} /></Link></section>
-      <section className="detail-section"><h3><Search size={15} /> How to analyze (ideas & examples)</h3><ul className="idea-list">{analyzeIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href="/projects">Open repo analysis workspace <ArrowRight size={14} /></Link></section>
-      <section className="detail-section"><h3>Suggested repositories to analyze</h3><p className="module-muted">Pick a repo, clone it locally, run/read it, and document your findings in the Project lab analysis workspace.</p><div className="week-resource-list">{repoSuggestions.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title} {"compulsory" in resource && resource.compulsory ? <span className="compulsory-badge">Compulsory</span> : null}</strong><small>Repository{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div></section>
-      <section className="detail-section suggest-section"><h3>Suggest an addition to this week’s curriculum</h3><p className="module-muted">Have a great video, note, resource, or idea that should be added for everyone? Send it to the administrator for review.</p>
+      <DetailSection title={<><Sparkles size={15} /> AI prompts for this week</>}><p className="module-muted">Use these prompts in your own AI (ChatGPT, Gemini, Claude, local model, etc.) or open them directly in our AI assistant.</p><div className="week-ai-prompts">{aiPrompts.map((item) => <div key={item.label} className="week-ai-prompt-card"><div className="week-ai-prompt-head"><strong>{item.label}</strong><div className="week-ai-prompt-actions"><button type="button" className="small-outline-button" onClick={() => void copyPrompt(item.prompt, item.label)}><Copy size={13} /> {copiedPrompt === item.label ? "Copied" : "Copy prompt"}</button><Link className="small-outline-button" href={`/assistant?prompt=${encodeURIComponent(item.prompt)}`}><Bot size={13} /> Open in AI assistant</Link></div></div><p>{item.prompt}</p></div>)}</div></DetailSection>
+      <DetailSection title={<><Lightbulb size={15} /> What to build this week (ideas & examples)</>}><ul className="idea-list">{buildIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href={`/projects?week=${week.week}`}>Start building in Project lab <ArrowRight size={14} /></Link></DetailSection>
+      <DetailSection title={<><Search size={15} /> How to analyze (ideas & examples)</>}><ul className="idea-list">{analyzeIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul><Link className="inline-module-link" href="/projects">Open repo analysis workspace <ArrowRight size={14} /></Link></DetailSection>
+      <DetailSection title="Suggested repositories to analyze"><p className="module-muted">Pick a repo, clone it locally, run/read it, and document your findings in the Project lab analysis workspace.</p><div className="week-resource-list">{repoSuggestions.map((resource) => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer" className="week-resource-row"><span className="resource-kind-icon"><ExternalLink size={15} /></span><span><strong>{resource.title} {"compulsory" in resource && resource.compulsory ? <span className="compulsory-badge">Compulsory</span> : null}</strong><small>Repository{resource.note ? ` · ${resource.note}` : ""}</small></span><ArrowRight size={14} /></a>)}</div></DetailSection>
+      <DetailSection title="Suggest an addition to this week’s curriculum" className="suggest-section"><p className="module-muted">Have a great video, note, resource, or idea that should be added for everyone? Send it to the administrator for review.</p>
         <label className="suggest-field">Subject (optional)<input value={suggestSubject} onChange={(e) => setSuggestSubject(e.target.value)} placeholder={`e.g. Add video/resource for Week ${week.week}`} /></label>
         <label className="suggest-field">Your suggestion<textarea value={suggestBody} onChange={(e) => setSuggestBody(e.target.value)} rows={4} placeholder="Describe the resource, link, note, or idea and why it helps this week…" /></label>
         <button className="primary-button module-action-button" disabled={suggestBusy || !isSupabaseConfigured()} onClick={() => void submitSuggestion()}><Send size={14} /> {suggestBusy ? "Sending…" : "Send suggestion to admin"}</button>
         {!isSupabaseConfigured() && <p className="module-muted">Sign in with an approved member account to send suggestions to the admin (optional society feature).</p>}
         {suggestMsg && <p className="module-status-message" role="status">{suggestMsg}</p>}
-      </section>
+      </DetailSection>
     </div>}
 
     {detailTab === "mine" && <div className="week-detail-content">
-      <section className="detail-section"><h3>My personal notes for Week {week.week}</h3><p className="module-muted">Customize this week for yourself. Your notes are saved locally in this browser.</p>
+      <DetailSection title={`My personal notes for Week ${week.week}`}><p className="module-muted">Customize this week for yourself. Your notes are saved locally in this browser.</p>
         <textarea className="personal-notes-area" value={custom.notes} onChange={(e) => saveCustom({ ...custom, notes: e.target.value })} rows={6} placeholder="Write your own notes, summaries, reminders, or insights for this week…" />
-      </section>
-      <section className="detail-section"><h3><Video size={15} /> My videos for this week</h3><p className="module-muted">Add videos you find helpful (YouTube, lectures, talks, etc.). Saved locally.</p>
+      </DetailSection>
+      <DetailSection title={<><Video size={15} /> My videos for this week</>}><p className="module-muted">Add videos you find helpful (YouTube, lectures, talks, etc.). Saved locally.</p>
         <div className="custom-add-row"><input value={newVideoTitle} onChange={(e) => setNewVideoTitle(e.target.value)} placeholder="Video title" /><input value={newVideoUrl} onChange={(e) => setNewVideoUrl(e.target.value)} placeholder="https://…" /><button className="small-outline-button" onClick={addVideo}><Plus size={13} /> Add</button></div>
         <div className="custom-resource-list">{custom.videos.map((v, i) => <div key={`${v.url}-${i}`} className="custom-resource-item"><a href={v.url} target="_blank" rel="noreferrer"><Video size={14} /> <span><strong>{v.title}</strong><small>{v.url}</small></span></a><button className="icon-button" aria-label="Remove video" onClick={() => saveCustom({ ...custom, videos: custom.videos.filter((_, idx) => idx !== i) })}><Trash2 size={14} /></button></div>)}{!custom.videos.length && <p className="module-muted">No personal videos added yet.</p>}</div>
-      </section>
-      <section className="detail-section"><h3>My extra resources / links</h3><p className="module-muted">Add articles, docs, repos, or any links you want to keep for this week.</p>
+      </DetailSection>
+      <DetailSection title="My extra resources / links"><p className="module-muted">Add articles, docs, repos, or any links you want to keep for this week.</p>
         <div className="custom-add-row"><input value={newResTitle} onChange={(e) => setNewResTitle(e.target.value)} placeholder="Resource title" /><input value={newResUrl} onChange={(e) => setNewResUrl(e.target.value)} placeholder="https://…" /><button className="small-outline-button" onClick={addResource}><Plus size={13} /> Add</button></div>
         <div className="custom-resource-list">{custom.personalResources.map((r, i) => <div key={`${r.url}-${i}`} className="custom-resource-item"><a href={r.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> <span><strong>{r.title}</strong><small>{r.url}</small></span></a><button className="icon-button" aria-label="Remove resource" onClick={() => saveCustom({ ...custom, personalResources: custom.personalResources.filter((_, idx) => idx !== i) })}><Trash2 size={14} /></button></div>)}{!custom.personalResources.length && <p className="module-muted">No personal resources added yet.</p>}</div>
-      </section>
+      </DetailSection>
       <p className="progress-save-note">Personal notes, videos, and links are saved in this browser on this device.</p>
     </div>}
   </article>;
+}
+
+function DetailSection({ title, children, defaultOpen = true, className = "" }: { title: ReactNode; children: ReactNode; defaultOpen?: boolean; className?: string }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return <section className={`detail-section ${open ? "" : "is-collapsed"} ${className}`.trim()}>
+    <button type="button" className="detail-section-toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <ChevronDown size={15} className={open ? "" : "is-collapsed"} />
+      <h3>{title}</h3>
+    </button>
+    {open && <div className="detail-section-body">{children}</div>}
+  </section>;
 }
 
 function MathLine({ value }: { value: string }) {
