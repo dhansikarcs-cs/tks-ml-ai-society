@@ -130,6 +130,13 @@ export function CurriculumView() {
         </div>
       </div>
     </div>
+    <Panel collapsible title="Using TKS on mobile" description="Most members have a laptop, but mobile works well too.">
+      <div className="mobile-guide-note">
+        <p><strong>Mobile works for most learning:</strong> read lessons, watch resources, take notes, track time, write reflections, review code, and plan builds.</p>
+        <p><strong>Coding on mobile is possible</strong> — many members do it. For running/testing, you can use cloud options like <strong>Google Colab, Kaggle, GitHub Codespaces, or Replit</strong>.</p>
+        <p><strong>Main mobile limits:</strong> running local AI/models and some local setup/testing (heavy dependencies, Docker, local GPU/CPU model runs). For those parts, switch to a laptop/desktop or a cloud environment.</p>
+      </div>
+    </Panel>
   </ModuleShell>;
 }
 

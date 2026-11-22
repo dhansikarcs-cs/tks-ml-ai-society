@@ -772,3 +772,9 @@
 .detail-section.is-collapsed .detail-section-toggle { margin-bottom: 0; }
 .detail-section-body { min-width: 0; }
 [data-theme="light"] .detail-section-toggle > svg { color: #6b6978; }
+
+.mobile-guide-note { display: grid; gap: 8px; }
+.mobile-guide-note p { margin: 0; color: #c7c5d0; font-size: 13px; line-height: 1.55; }
+.mobile-guide-note strong { color: #eceaf2; }
+[data-theme="light"] .mobile-guide-note p { color: #55525f; }
+[data-theme="light"] .mobile-guide-note strong { color: #211f2b; }
