@@ -4,15 +4,17 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { ArrowUp, Bot, BookOpen, Check, CircleHelp, KeyRound, Plus, Server, Settings2, Sparkles, TriangleAlert, UserRound } from "lucide-react";
+import { ArrowUp, Bot, BookOpen, Check, CircleHelp, KeyRound, MessageSquare, Plus, Server, Settings2, Sparkles, Trash2, TriangleAlert, UserRound } from "lucide-react";
 import { ModuleShell } from "@/components/module-shell";
 import { CollapsibleBlock } from "@/components/collapsible";
 import { curriculum } from "@/lib/curriculum";
 import { readLocal, writeLocal } from "@/lib/local-data";
+import { createSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Message = { role: "user" | "assistant"; content: string };
 type ProviderMode = "server" | "custom";
 type CustomProvider = { mode: ProviderMode; url: string; key: string; model: string };
+type ChatRow = { id: string; title: string; week: number; messages: Message[]; updated_at: string };
 
 const PROVIDER_KEY = "assistant-provider";
 const promptIdeas = [
@@ -64,7 +66,13 @@ export function AssistantView() {
   const [week, setWeek] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [chats, setChats] = useState<ChatRow[]>([]);
+  const [cloudHistory, setCloudHistory] = useState(false);
+  const [chatsLoading, setChatsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipSave = useRef(false);
   const weekInfo = curriculum[week - 1];
 
   const customReady = provider.mode === "custom" && Boolean(provider.url.trim() && provider.model.trim());
@@ -84,6 +92,35 @@ export function AssistantView() {
       const prompt = new URLSearchParams(window.location.search).get("prompt");
       if (prompt) setInput(prompt.slice(0, 5000));
     } catch {}
+
+    void (async () => {
+      if (!isSupabaseConfigured()) return;
+      const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("membership_state").eq("id", user.id).maybeSingle();
+      if (profile?.membership_state !== "approved") return;
+      setCloudHistory(true);
+      setChatsLoading(true);
+      const { data } = await supabase.from("assistant_chats").select("id,title,week,messages,updated_at").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(30);
+      const rows = (data ?? []).map((r: any) => ({
+        id: String(r.id),
+        title: typeof r.title === "string" ? r.title : "New conversation",
+        week: Number(r.week) || 1,
+        messages: Array.isArray(r.messages) ? r.messages.filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string").slice(-60) : [],
+        updated_at: String(r.updated_at ?? ""),
+      })) as ChatRow[];
+      setChats(rows);
+      setChatsLoading(false);
+      const hasPrompt = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("prompt");
+      if (!hasPrompt && rows.length > 0) {
+        skipSave.current = true;
+        setChatId(rows[0].id);
+        setMessages(rows[0].messages);
+        setWeek(rows[0].week || 1);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -91,15 +128,71 @@ export function AssistantView() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
+  useEffect(() => {
+    if (!cloudHistory || !isSupabaseConfigured()) return;
+    if (skipSave.current) { skipSave.current = false; return; }
+    if (messages.length === 0 && !chatId) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void (async () => {
+        const supabase = createSupabaseBrowserClient();
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const title = (messages.find((m) => m.role === "user")?.content ?? "New conversation").slice(0, 80).replace(/\s+/g, " ").trim() || "New conversation";
+        const payload = { user_id: user.id, title, week, messages: messages.slice(-60), updated_at: new Date().toISOString() };
+        if (chatId) {
+          const { data } = await supabase.from("assistant_chats").update({ title, week, messages: messages.slice(-60) }).eq("id", chatId).eq("user_id", user.id).select("id,title,week,messages,updated_at").maybeSingle();
+          if (data) setChats((prev) => [{ ...(data as any), messages: Array.isArray((data as any).messages) ? (data as any).messages : messages.slice(-60) } as ChatRow, ...prev.filter((c) => c.id !== chatId)]);
+        } else if (messages.length > 0) {
+          const { data } = await supabase.from("assistant_chats").insert(payload).select("id,title,week,messages,updated_at").maybeSingle();
+          if (data) {
+            const row = { ...(data as any), messages: Array.isArray((data as any).messages) ? (data as any).messages : messages.slice(-60) } as ChatRow;
+            setChatId(row.id);
+            setChats((prev) => [row, ...prev.filter((c) => c.id !== row.id)]);
+          }
+        }
+      })();
+    }, 800);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [messages, week, cloudHistory, chatId]);
+
   function updateProvider(next: CustomProvider) {
     setProvider(next);
     try { window.localStorage.setItem(PROVIDER_KEY, JSON.stringify(next)); } catch {}
   }
 
   function newConversation() {
+    skipSave.current = true;
     setMessages([]);
     setError("");
+    setChatId(null);
     writeLocal("assistant-history", []);
+  }
+
+  function selectChat(chat: ChatRow) {
+    if (chat.id === chatId) return;
+    skipSave.current = true;
+    setChatId(chat.id);
+    setMessages(chat.messages || []);
+    setWeek(chat.week || 1);
+    setError("");
+  }
+
+  async function deleteChat(id: string) {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("assistant_chats").delete().eq("id", id).eq("user_id", user.id);
+    setChats((prev) => prev.filter((c) => c.id !== id));
+    if (chatId === id) {
+      skipSave.current = true;
+      setChatId(null);
+      setMessages([]);
+      writeLocal("assistant-history", []);
+    }
   }
 
   async function send(event?: FormEvent, suggested?: string) {
@@ -194,12 +287,25 @@ export function AssistantView() {
             </div>
           </div>}
         </div>}
+        {cloudHistory && <CollapsibleBlock className="assistant-collapsible" title={<span>Chat history</span>}>
+          <div className="assistant-history-list">
+            {chatsLoading ? <p className="module-muted">Loading chats...</p> : chats.length === 0 ? <p className="module-muted">No saved chats yet. Start a conversation and it will be saved to your account.</p> : chats.map((chat) => (
+              <div key={chat.id} className={`assistant-history-item ${chat.id === chatId ? "active" : ""}`}>
+                <button type="button" className="assistant-history-select" onClick={() => selectChat(chat)}>
+                  <MessageSquare size={14} />
+                  <span><strong>{chat.title}</strong><small>{new Date(chat.updated_at).toLocaleDateString()} · Week {chat.week}</small></span>
+                </button>
+                <button type="button" className="icon-button" aria-label="Delete chat" onClick={() => void deleteChat(chat.id)}><Trash2 size={14} /></button>
+              </div>
+            ))}
+          </div>
+        </CollapsibleBlock>}
         <CollapsibleBlock className="assistant-collapsible" title={<span>Current context</span>}>
           <div className="assistant-context-card"><span className="context-icon"><BookOpen size={16} /></span><span className="context-label">CURRENT CONTEXT</span><h3>Week {week}: {weekInfo.title}</h3><p>{weekInfo.summary}</p><ul>{weekInfo.objectives.slice(0, 3).map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
         </CollapsibleBlock>
         <CollapsibleBlock className="assistant-collapsible" title={<span>Tips & history</span>}>
           <div className="assistant-context-note"><Sparkles size={15} /><p>Ask for a hint, an analogy, or a small next step. The assistant is instructed not to give complete assessment answers.</p></div>
-          <div className="assistant-history-note"><strong>Conversation history</strong><span>Kept only in this browser. Clear it anytime with &ldquo;New conversation&rdquo;.</span></div>
+          <div className="assistant-history-note"><strong>Conversation history</strong><span>{cloudHistory ? "Saved to your account when signed in. You can reopen or delete chats from Chat history." : "Kept only in this browser. Clear it anytime with \u201cNew conversation\u201d."}</span></div>
         </CollapsibleBlock>
       </aside>
     </div>

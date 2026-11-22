@@ -689,3 +689,19 @@
   .week-ai-prompt-actions { justify-content: flex-start; }
   .week-ai-prompt-actions .small-outline-button { flex: 1 1 auto; justify-content: center; }
 }
+
+
+/* Assistant chat history */
+.assistant-history-list { display: grid; gap: 8px; }
+.assistant-history-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; align-items: stretch; }
+.assistant-history-select { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid #313238; border-radius: 8px; background: #17181c; color: inherit; text-align: left; cursor: pointer; }
+.assistant-history-select:hover { border-color: #4a4b54; }
+.assistant-history-item.active .assistant-history-select { border-color: #6f6af8; background: rgba(111,106,248,.08); }
+.assistant-history-select svg { flex: 0 0 14px; margin-top: 2px; color: #94939b; }
+.assistant-history-select span { display: grid; gap: 2px; min-width: 0; }
+.assistant-history-select strong { font-size: 12px; line-height: 1.4; color: #e5e3ee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assistant-history-select small { font-size: 11px; color: #9293a0; }
+.assistant-history-item .icon-button { align-self: center; }
+[data-theme="light"] .assistant-history-select { background: #fff; border-color: #ddd9eb; }
+[data-theme="light"] .assistant-history-select strong { color: #2b2838; }
+[data-theme="light"] .assistant-history-select small { color: #67657a; }

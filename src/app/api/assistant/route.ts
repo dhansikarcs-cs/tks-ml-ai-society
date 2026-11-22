@@ -84,6 +84,8 @@ export async function POST(request: Request) {
     });
     if (!response.ok) {
       const status = response.status;
+      const detail = await response.text().catch(() => "");
+      console.error("AI provider error", status, detail.slice(0, 300));
       return NextResponse.json({ error: status === 429 ? "The AI provider is busy. Try again shortly." : "The AI provider could not complete that request." }, { status: status === 429 ? 429 : 502 });
     }
     const result = await response.json() as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
