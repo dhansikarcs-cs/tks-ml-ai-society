@@ -124,7 +124,7 @@ export function ModuleShell({
   );
 }
 
-export function Panel({ title, description, children, action, collapsible, defaultOpen = true }: { title: string; description?: string; children: ReactNode; action?: ReactNode; collapsible?: boolean; defaultOpen?: boolean }) {
+export function Panel({ title, description, children, action, collapsible = true, defaultOpen = true }: { title: string; description?: string; children: ReactNode; action?: ReactNode; collapsible?: boolean; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className={`module-panel ${collapsible ? "module-panel-collapsible" : ""} ${collapsible && !open ? "module-panel-collapsed" : ""}`}>
