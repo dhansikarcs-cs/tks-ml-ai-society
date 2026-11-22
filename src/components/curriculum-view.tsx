@@ -130,11 +130,13 @@ export function CurriculumView() {
         </div>
       </div>
     </div>
-    <Panel collapsible title="Using TKS on mobile" description="Most members have a laptop, but mobile works well too.">
+    <Panel collapsible title="Pocket Lab" description="Mobile workarounds for learning, coding, and shipping on the go.">
       <div className="mobile-guide-note">
-        <p><strong>Mobile works for most learning:</strong> read lessons, watch resources, take notes, track time, write reflections, review code, and plan builds.</p>
-        <p><strong>Coding on mobile is possible</strong> — many members do it. For running/testing, you can use cloud options like <strong>Google Colab, Kaggle, GitHub Codespaces, or Replit</strong>.</p>
-        <p><strong>Main mobile limits:</strong> running local AI/models and some local setup/testing (heavy dependencies, Docker, local GPU/CPU model runs). For those parts, switch to a laptop/desktop or a cloud environment.</p>
+        <p><strong>Most things work on mobile:</strong> read lessons, watch resources, take notes, track time, write reflections, review code, plan builds, and even code.</p>
+        <p><strong>CLI/Linux on mobile:</strong> use <strong>Termux</strong> for command-line work, git, scripts, and lightweight dev tools.</p>
+        <p><strong>Python/coding on mobile:</strong> use <strong>Pydroid</strong> or mobile editors for writing/running small Python code. For heavier runs, use <strong>Google Colab, Kaggle, GitHub Codespaces, or Replit</strong>.</p>
+        <p><strong>GitHub workflow:</strong> push/pull from mobile with GitHub apps/web/Termux git. If you have a repo/workflow that syncs a specific directory with permission, that’s a good mobile bridge. Agent workflows on mobile can be clunky though — you may need to copy/paste, review changes manually, and be careful with paths.</p>
+        <p><strong>Main mobile limits:</strong> running local AI/models and some local setup/testing (heavy dependencies, Docker, local GPU/CPU model runs). For those, use a laptop/desktop or cloud environment.</p>
       </div>
     </Panel>
   </ModuleShell>;
