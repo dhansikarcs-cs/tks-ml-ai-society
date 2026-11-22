@@ -778,3 +778,37 @@
 .mobile-guide-note strong { color: #eceaf2; }
 [data-theme="light"] .mobile-guide-note p { color: #55525f; }
 [data-theme="light"] .mobile-guide-note strong { color: #211f2b; }
+
+/* Commitment blocks & week planner */
+.commitment-blocks { display: grid; gap: 8px; margin: 10px 0 14px; }
+.commitment-block-card { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #353244; border-radius: 10px; background: #1d1c24; }
+.commitment-block-time { flex: 0 0 auto; min-width: 56px; padding: 4px 8px; border-radius: 999px; background: #2a2740; color: #d8d1f0; font-size: 12px; font-weight: 700; text-align: center; }
+.commitment-block-card strong { display: block; color: #eceaf2; font-size: 13px; }
+.commitment-block-card small { display: block; color: #9b9aa3; font-size: 12px; margin-top: 2px; line-height: 1.4; }
+.week-planner { border-top: 1px solid #33313d; padding-top: 12px; }
+.week-planner-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; margin-bottom: 10px; }
+.week-planner-head strong { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #eceaf2; }
+.week-planner-head .module-muted { font-size: 12px; margin: 0; }
+.week-planner-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.week-planner-day { min-width: 0; padding: 8px; border: 1px solid #343244; border-radius: 10px; background: #181821; display: flex; flex-direction: column; gap: 6px; }
+.week-planner-day-head { font-size: 11px; font-weight: 700; color: #b9b4cc; text-transform: uppercase; letter-spacing: .03em; }
+.week-planner-slots { display: flex; flex-direction: column; gap: 4px; min-height: 24px; }
+.week-planner-chip { display: inline-flex; align-items: center; justify-content: space-between; gap: 4px; padding: 4px 6px; border-radius: 7px; background: #2a2740; color: #ddd8ee; font-size: 11px; line-height: 1.3; }
+.week-planner-chip button { border: 0; background: transparent; color: #b9b4cc; cursor: pointer; padding: 0; display: inline-flex; }
+.week-planner-chip button:hover { color: #fff; }
+.week-planner-add { width: 100%; min-height: 30px; padding: 0 6px; border-radius: 7px; border: 1px dashed #4a4560; background: transparent; color: #a9a4b8; font: inherit; font-size: 11px; cursor: pointer; }
+.week-planner-add:focus { outline: 2px solid #6a5b90; outline-offset: 1px; }
+@media (max-width: 1100px) { .week-planner-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .week-planner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .week-planner-grid { grid-template-columns: 1fr; } }
+[data-theme="light"] .commitment-block-card { border-color: #ddd9eb; background: #fff; }
+[data-theme="light"] .commitment-block-time { background: #efe9ff; color: #5b43a8; }
+[data-theme="light"] .commitment-block-card strong { color: #211f2b; }
+[data-theme="light"] .commitment-block-card small { color: #655f72; }
+[data-theme="light"] .week-planner { border-top-color: #ddd9eb; }
+[data-theme="light"] .week-planner-head strong { color: #211f2b; }
+[data-theme="light"] .week-planner-day { border-color: #ddd9eb; background: #fbfaff; }
+[data-theme="light"] .week-planner-day-head { color: #5b5670; }
+[data-theme="light"] .week-planner-chip { background: #efe9ff; color: #433466; }
+[data-theme="light"] .week-planner-chip button { color: #6b6285; }
+[data-theme="light"] .week-planner-add { border-color: #cfc5ea; color: #5b5670; }

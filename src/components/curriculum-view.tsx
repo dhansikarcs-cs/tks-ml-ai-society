@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { ArrowRight, BookOpen, Bot, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Copy, ExternalLink, Lightbulb, Plus, Search, Send, Sparkles, Trash2, Video } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Copy, ExternalLink, Lightbulb, Plus, Search, Send, Sparkles, Trash2, Video, X } from "lucide-react";
 import { phases, type CurriculumWeek } from "@/lib/curriculum";
 import { readLocal, writeLocal } from "@/lib/local-data";
 import { ModuleShell, Panel } from "@/components/module-shell";
@@ -142,6 +142,9 @@ export function CurriculumView() {
   </ModuleShell>;
 }
 
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const emptyPlanner = (): Record<string, string[]> => ({ Mon: [], Tue: [], Wed: [], Thu: [], Fri: [], Sat: [], Sun: [] });
+
 function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers, setAnswer, toggleWeek }: {
   week: CurriculumWeek;
   progress: ProgressMap;
@@ -173,9 +176,11 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
   const [newResTitle, setNewResTitle] = useState("");
   const [newResUrl, setNewResUrl] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState("");
+  const [planner, setPlanner] = useState<Record<string, string[]>>(emptyPlanner());
 
   useEffect(() => {
     setCustom(readLocal<WeekCustom>(`week-custom-${week.week}`, defaultWeekCustom()));
+    setPlanner(readLocal<Record<string, string[]>>(`week-planner-${week.week}`, emptyPlanner()));
     setSuggestMsg("");
   }, [week.week]);
 
@@ -183,6 +188,12 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
     setCustom(next);
     writeLocal(`week-custom-${week.week}`, next);
   };
+
+  function setPlannerDay(day: string, blocks: string[]) {
+    const next = { ...planner, [day]: blocks };
+    setPlanner(next);
+    writeLocal(`week-planner-${week.week}`, next);
+  }
 
   const addVideo = () => {
     const title = newVideoTitle.trim();
@@ -269,7 +280,27 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
 
     {detailTab === "overview" && <div className="week-detail-content">
       <DetailSection title="By the end of this week"><ul className="objective-list">{week.objectives.map((objective) => <li key={objective}><CheckCircle2 size={15} />{objective}</li>)}</ul></DetailSection>
-      <DetailSection title={<><Clock3 size={15} /> Weekly commitment</>} className="commitment-section"><p className="module-muted"><strong>{week.estimatedHours} hours total</strong> this week. Flexible plan: {week.dailyCommitment}</p><div className="commitment-options"><span>Pick what fits your day:</span><div className="commitment-pills"><span>30 min</span><span>45 min</span><span>1 hr</span><span>Flexible split</span></div></div></DetailSection>
+      <DetailSection title={<><Clock3 size={15} /> Weekly commitment</>} className="commitment-section">
+        <p className="module-muted"><strong>{week.estimatedHours} hours total</strong> this week. Break it into focused blocks — you decide which day to do what.</p>
+        <div className="commitment-blocks">
+          {week.commitmentBlocks.map((block) => <div key={block.label} className="commitment-block-card"><span className="commitment-block-time">{block.minutes >= 60 ? `${Math.floor(block.minutes / 60)} hr${block.minutes % 60 ? ` ${block.minutes % 60} min` : ""}` : `${block.minutes} min`}</span><div><strong>{block.label}</strong>{block.note && <small>{block.note}</small>}</div></div>)}
+        </div>
+        <div className="week-planner">
+          <div className="week-planner-head"><strong><CalendarDays size={14} /> Plan your week</strong><span className="module-muted">Assign blocks to days your way. Saved on this device.</span></div>
+          <div className="week-planner-grid">
+            {DAYS.map((day) => <div key={day} className="week-planner-day">
+              <div className="week-planner-day-head">{day}</div>
+              <div className="week-planner-slots">
+                {(planner[day] || []).map((label, idx) => <span key={`${label}-${idx}`} className="week-planner-chip">{label}<button type="button" aria-label={`Remove ${label} from ${day}`} onClick={() => setPlannerDay(day, (planner[day] || []).filter((_, i) => i !== idx))}><X size={12} /></button></span>)}
+              </div>
+              <select className="week-planner-add" value="" onChange={(e) => { const v = e.target.value; if (!v) return; setPlannerDay(day, [...(planner[day] || []), v]); e.target.value = ""; }}>
+                <option value="">+ Add block</option>
+                {week.commitmentBlocks.map((b) => <option key={b.label} value={b.label}>{b.label} ({b.minutes}m)</option>)}
+              </select>
+            </div>)}
+          </div>
+        </div>
+      </DetailSection>
       <DetailSection title="Exact topics to cover this week"><p className="module-muted">Focus on these specific topics — don&apos;t keep it vague.</p><ul className="objective-list exact-topic-list">{week.exactTopics.map((topic) => <li key={topic}><CheckCircle2 size={15} />{topic}</li>)}</ul></DetailSection>
       <DetailSection title="Topics &amp; ideas"><div className="topic-pills">{week.topics.map((topic) => <span key={topic}>{topic}</span>)}</div></DetailSection>
       <DetailSection title="Mathematical foundations" className="math-section"><ul>{week.mathematics.map((item) => <li key={item}><MathLine value={item} /></li>)}</ul></DetailSection>
