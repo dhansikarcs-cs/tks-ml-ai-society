@@ -337,7 +337,15 @@ export function ActivityTimer() {
       setPos((cur) => { if (cur) writeLocal(POS_KEY, cur); return cur; });
       window.setTimeout(() => { didDragRef.current = false; }, 0);
     } else {
-      didDragRef.current = false;
+      // Tap (no drag): if collapsed, open the timer. Handle here for touch reliability.
+      if (!open) {
+        didDragRef.current = true;
+        setOpen(true);
+        writeLocal(OPEN_KEY, true);
+        window.setTimeout(() => { didDragRef.current = false; }, 0);
+      } else {
+        didDragRef.current = false;
+      }
     }
     if (captured) {
       try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
