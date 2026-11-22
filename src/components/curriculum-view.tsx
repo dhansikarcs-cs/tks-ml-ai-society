@@ -143,6 +143,7 @@ function WeekDetail({ week, progress, detailTab, setDetailTab, setItem, answers,
 }) {
   const checklist = [
     { id: "lesson", title: "Review the learning objectives", meta: "Concepts and mathematics" },
+    { id: "resources", title: "Review week resources or suggest one", meta: "Explore curated/suggested resources, or suggest your own for admin approval" },
     { id: "coding", title: "Complete coding practice", meta: `${week.coding.length} activity${week.coding.length === 1 ? "" : "ies"}` },
     { id: "activity", title: "Try the weekly activity", meta: "Hands-on practice" },
     { id: "assignment", title: "Submit the weekly build", meta: "Project deliverable" },
