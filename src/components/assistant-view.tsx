@@ -104,13 +104,14 @@ export function AssistantView() {
       setCloudHistory(true);
       setChatsLoading(true);
       const { data } = await supabase.from("assistant_chats").select("id,title,week,messages,updated_at").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(30);
-      const rows = (data ?? []).map((r: any) => ({
-        id: String(r.id),
+      const toRow = (r: Record<string, unknown>): ChatRow => ({
+        id: String(r.id ?? ""),
         title: typeof r.title === "string" ? r.title : "New conversation",
         week: Number(r.week) || 1,
-        messages: Array.isArray(r.messages) ? r.messages.filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string").slice(-60) : [],
+        messages: Array.isArray(r.messages) ? (r.messages as unknown[]).filter((m): m is Message => Boolean(m && typeof m === "object" && ((m as Record<string, unknown>).role === "user" || (m as Record<string, unknown>).role === "assistant") && typeof (m as Record<string, unknown>).content === "string")).slice(-60) as Message[] : [],
         updated_at: String(r.updated_at ?? ""),
-      })) as ChatRow[];
+      });
+      const rows = (data ?? []).map((r) => toRow(r as Record<string, unknown>));
       setChats(rows);
       setChatsLoading(false);
       const hasPrompt = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("prompt");
@@ -141,13 +142,20 @@ export function AssistantView() {
         if (!user) return;
         const title = (messages.find((m) => m.role === "user")?.content ?? "New conversation").slice(0, 80).replace(/\s+/g, " ").trim() || "New conversation";
         const payload = { user_id: user.id, title, week, messages: messages.slice(-60), updated_at: new Date().toISOString() };
+        const toRow = (r: Record<string, unknown>): ChatRow => ({
+          id: String(r.id ?? ""),
+          title: typeof r.title === "string" ? r.title : "New conversation",
+          week: Number(r.week) || 1,
+          messages: Array.isArray(r.messages) ? (r.messages as unknown[]).filter((m): m is Message => Boolean(m && typeof m === "object" && ((m as Record<string, unknown>).role === "user" || (m as Record<string, unknown>).role === "assistant") && typeof (m as Record<string, unknown>).content === "string")).slice(-60) as Message[] : [],
+          updated_at: String(r.updated_at ?? ""),
+        });
         if (chatId) {
           const { data } = await supabase.from("assistant_chats").update({ title, week, messages: messages.slice(-60) }).eq("id", chatId).eq("user_id", user.id).select("id,title,week,messages,updated_at").maybeSingle();
-          if (data) setChats((prev) => [{ ...(data as any), messages: Array.isArray((data as any).messages) ? (data as any).messages : messages.slice(-60) } as ChatRow, ...prev.filter((c) => c.id !== chatId)]);
+          if (data) setChats((prev) => [toRow(data as Record<string, unknown>), ...prev.filter((c) => c.id !== chatId)]);
         } else if (messages.length > 0) {
           const { data } = await supabase.from("assistant_chats").insert(payload).select("id,title,week,messages,updated_at").maybeSingle();
           if (data) {
-            const row = { ...(data as any), messages: Array.isArray((data as any).messages) ? (data as any).messages : messages.slice(-60) } as ChatRow;
+            const row = toRow(data as Record<string, unknown>);
             setChatId(row.id);
             setChats((prev) => [row, ...prev.filter((c) => c.id !== row.id)]);
           }
