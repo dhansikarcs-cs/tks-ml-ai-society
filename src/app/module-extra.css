@@ -705,3 +705,17 @@
 [data-theme="light"] .assistant-history-select { background: #fff; border-color: #ddd9eb; }
 [data-theme="light"] .assistant-history-select strong { color: #2b2838; }
 [data-theme="light"] .assistant-history-select small { color: #67657a; }
+
+
+/* Curriculum commitment + compulsory */
+.commitment-section .module-muted strong { color: #eceaf3; }
+.commitment-options { margin-top: 10px; display: grid; gap: 8px; }
+.commitment-options > span { font-size: 12px; color: #94939b; }
+.commitment-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.commitment-pills span { padding: 5px 10px; border-radius: 999px; border: 1px solid #35363c; background: #17181c; font-size: 12px; color: #d7d5de; }
+.exact-topic-list li { align-items: flex-start; }
+.compulsory-badge { display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(111,106,248,.16); color: #b9b6ff; font-size: 10px; font-weight: 700; letter-spacing: .02em; vertical-align: middle; }
+[data-theme="light"] .commitment-section .module-muted strong { color: #2b2838; }
+[data-theme="light"] .commitment-options > span { color: #67657a; }
+[data-theme="light"] .commitment-pills span { background: #fff; border-color: #ddd9eb; color: #444155; }
+[data-theme="light"] .compulsory-badge { background: rgba(111,106,248,.12); color: #5b56d6; }

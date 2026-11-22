@@ -3,6 +3,7 @@ export type Resource = {
   url: string;
   kind: "Course" | "Documentation" | "Video" | "Paper" | "Repository" | "Reference";
   note?: string;
+  compulsory?: boolean;
 };
 
 export type CurriculumWeek = {
@@ -10,6 +11,9 @@ export type CurriculumWeek = {
   phase: number;
   title: string;
   summary: string;
+  estimatedHours: number;
+  dailyCommitment: string;
+  exactTopics: string[];
   objectives: string[];
   topics: string[];
   mathematics: string[];
@@ -25,7 +29,7 @@ export type CurriculumWeek = {
   resources: Resource[];
 };
 
-const r = (title: string, url: string, kind: Resource["kind"], note?: string): Resource => ({ title, url, kind, note });
+const r = (title: string, url: string, kind: Resource["kind"], note?: string, compulsory = false): Resource => ({ title, url, kind, note, compulsory });
 
 export const phases = [
   { id: 1, title: "Mathematical Foundations", subtitle: "Build the language and intuition behind machine learning.", weeks: [1, 2, 3, 4] },
@@ -39,6 +43,9 @@ export const phases = [
 export const curriculum: CurriculumWeek[] = [
   {
     week: 1, phase: 1, title: "Mathematical Foundations", summary: "Get comfortable reading the language of mathematics and build a visual intuition for functions.",
+    estimatedHours: 6,
+    dailyCommitment: "~1 hr/day for 6 days, or 40-45 min/day across 7 days (flexible)",
+    exactTopics: ["Algebraic manipulation and equation solving", "Function notation, domain, range, and graphs", "Exponent and logarithm rules used in ML", "Sigma notation and reading finite series"],
     objectives: ["Read and manipulate algebraic expressions", "Interpret functions and their graphs", "Use logarithms, exponents, and summations", "Translate between notation and plain language"],
     topics: ["Algebra", "Functions", "Logarithms", "Exponents", "Summations", "Coordinate systems", "Mathematical notation"],
     mathematics: ["Function composition and inverse functions", "Log rules: log(ab) = log(a) + log(b)", "Sigma notation and finite sums", "Cartesian coordinates and slopes"],
@@ -50,10 +57,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Create a short, annotated notebook that compares linear, exponential, and logarithmic growth.",
     assessment: ["What does the slope of a line represent?", "Why are logarithms useful for comparing very large values?", "Expand the sum notation for the first four terms."],
     build: "Mathematical visualiser",
-    resources: [r("3Blue1Brown", "https://www.3blue1brown.com/", "Video"), r("Mathematics for Machine Learning", "https://www.coursera.org/specializations/mathematics-for-machine-learning", "Course", "May require paid enrollment."), r("Khan Academy: Statistics & Probability", "https://www.khanacademy.org/math/statistics-probability", "Course", "Free learning resource.")]
+    resources: [r("3Blue1Brown", "https://www.3blue1brown.com/", "Video", undefined, true), r("Mathematics for Machine Learning", "https://www.coursera.org/specializations/mathematics-for-machine-learning", "Course", "May require paid enrollment."), r("Khan Academy: Statistics & Probability", "https://www.khanacademy.org/math/statistics-probability", "Course", "Free learning resource.", true)]
   },
   {
     week: 2, phase: 1, title: "Linear Algebra I", summary: "Work with the objects used to represent data, parameters, and transformations.",
+    estimatedHours: 6,
+    dailyCommitment: "~1 hr/day for 6 days, or 30-45 min sessions across the week",
+    exactTopics: ["Vectors, matrices, tensors, and shape conventions", "Dot product and matrix multiplication by hand and in NumPy", "NumPy array creation, indexing, and basic broadcasting", "Shape compatibility checks for ML operations"],
     objectives: ["Distinguish scalars, vectors, matrices, and tensors", "Calculate dot products and matrix products", "Use NumPy to represent and transform arrays"],
     topics: ["Scalars", "Vectors", "Matrices", "Dot products", "Matrix multiplication", "Tensors", "NumPy operations"],
     mathematics: ["Vector addition and scalar multiplication", "Dot product and geometric interpretation", "Matrix-vector and matrix-matrix multiplication", "Shape compatibility"],
@@ -65,10 +75,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Implement fundamental linear algebra operations using NumPy and verify them against known examples.",
     assessment: ["What does a vector's dimension tell you?", "When is a matrix product defined?", "Describe the dot product geometrically."],
     build: "NumPy linear algebra toolkit",
-    resources: [r("3Blue1Brown: Linear Algebra", "https://www.3blue1brown.com/topics/linear-algebra", "Video"), r("NumPy Learn", "https://numpy.org/learn/", "Documentation"), r("NumPy Quickstart", "https://numpy.org/doc/stable/user/quickstart.html", "Documentation")]
+    resources: [r("3Blue1Brown: Linear Algebra", "https://www.3blue1brown.com/topics/linear-algebra", "Video", undefined, true), r("NumPy Learn", "https://numpy.org/learn/", "Documentation"), r("NumPy Quickstart", "https://numpy.org/doc/stable/user/quickstart.html", "Documentation", undefined, true)]
   },
   {
     week: 3, phase: 1, title: "Linear Algebra II", summary: "Move beyond mechanics into vector spaces, transformations, projections, and PCA.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days, or 45 min/day with one longer practice session",
+    exactTopics: ["Vector spaces, span, basis, rank, and linear independence", "Eigenvalues/eigenvectors and what they mean geometrically", "Orthogonal projection and covariance intuition", "PCA steps, explained variance, and interpretation"],
     objectives: ["Describe span, basis, rank, and dimension", "Interpret linear transformations", "Explain eigenvectors and eigenvalues", "Connect orthogonal projection to PCA"],
     topics: ["Vector spaces", "Basis", "Rank", "Linear transformations", "Eigenvalues and eigenvectors", "Orthogonality", "Projections", "Principal Component Analysis"],
     mathematics: ["Linear independence and span", "Rank-nullity intuition", "Eigen equation Av = λv", "Orthogonal projection", "Covariance and principal directions"],
@@ -81,10 +94,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Analyse and implement PCA on a small dataset; explain each transformation and the explained variance.",
     assessment: ["What makes a set of vectors a basis?", "What does an eigenvector preserve under a transformation?", "How does PCA choose a projection direction?"],
     build: "PCA visual exploration",
-    resources: [r("3Blue1Brown: Essence of Linear Algebra", "https://www.3blue1brown.com/topics/linear-algebra", "Video"), r("Mathematics for Machine Learning", "https://mml-book.github.io/", "Reference"), r("PCA paper (historical)", "https://doi.org/10.1080/14786440109462720", "Paper")]
+    resources: [r("3Blue1Brown: Essence of Linear Algebra", "https://www.3blue1brown.com/topics/linear-algebra", "Video", undefined, true), r("Mathematics for Machine Learning", "https://mml-book.github.io/", "Reference", undefined, true), r("PCA paper (historical)", "https://doi.org/10.1080/14786440109462720", "Paper")]
   },
   {
     week: 4, phase: 1, title: "Calculus and Optimisation", summary: "Understand how derivatives describe change and how gradients guide learning.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; split math and coding into separate sessions",
+    exactTopics: ["Derivatives, partial derivatives, and gradients", "Chain rule for composite functions", "Gradient descent update rule and learning-rate effects", "Convergence, divergence, and common optimization failures"],
     objectives: ["Interpret derivatives and partial derivatives", "Apply the chain rule", "Use gradients to find a descent direction", "Implement and visualise gradient descent"],
     topics: ["Limits", "Derivatives", "Partial derivatives", "Chain rule", "Gradients", "Jacobians", "Gradient descent", "Optimisation"],
     mathematics: ["Derivative as local rate of change", "Partial derivatives and gradient vectors", "Multivariable chain rule", "Learning rate and convergence"],
@@ -96,10 +112,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Implement gradient descent from scratch and document convergence, learning-rate choice, and failure cases.",
     assessment: ["What does a gradient point toward?", "Why does the chain rule matter in neural networks?", "What can happen when the learning rate is too large?"],
     build: "Gradient descent visualiser",
-    resources: [r("3Blue1Brown: Calculus", "https://www.3blue1brown.com/topics/calculus", "Video"), r("Mathematics for Machine Learning", "https://mml-book.github.io/", "Reference")]
+    resources: [r("3Blue1Brown: Calculus", "https://www.3blue1brown.com/topics/calculus", "Video", undefined, true), r("Mathematics for Machine Learning", "https://mml-book.github.io/", "Reference", undefined, true)]
   },
   {
     week: 5, phase: 2, title: "Probability", summary: "Represent uncertainty, update beliefs with evidence, and reason about random outcomes.",
+    estimatedHours: 6,
+    dailyCommitment: "~1 hr/day for 6 days, or 30-45 min/day flexibly",
+    exactTopics: ["Conditional probability and Bayes' theorem", "Independence vs mutual exclusivity", "Random variables and common probability distributions", "Prior, likelihood, posterior, and base-rate reasoning"],
     objectives: ["Apply conditional probability and Bayes' theorem", "Distinguish independence from mutual exclusivity", "Describe random variables and common distributions"],
     topics: ["Probability theory", "Conditional probability", "Bayes' theorem", "Independence", "Random variables", "Probability distributions"],
     mathematics: ["P(A|B) = P(A∩B)/P(B)", "Bayes' theorem", "Bernoulli and categorical variables", "Expectation of a discrete random variable"],
@@ -111,10 +130,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Build a Bayesian spam classifier and explain how evidence updates a prior probability.",
     assessment: ["State Bayes' theorem in words.", "What does independence mean?", "Why can a highly accurate test still produce many false positives?"],
     build: "Bayesian spam classifier",
-    resources: [r("Khan Academy: Probability", "https://www.khanacademy.org/math/statistics-probability", "Course"), r("Think Bayes", "https://allendowney.github.io/ThinkBayes2/", "Reference")]
+    resources: [r("Khan Academy: Probability", "https://www.khanacademy.org/math/statistics-probability", "Course", undefined, true), r("Think Bayes", "https://allendowney.github.io/ThinkBayes2/", "Reference", undefined, true)]
   },
   {
     week: 6, phase: 2, title: "Statistics", summary: "Summarise data responsibly and quantify the uncertainty in conclusions.",
+    estimatedHours: 6,
+    dailyCommitment: "~1 hr/day for 6 days, with one short review session",
+    exactTopics: ["Descriptive statistics: mean, median, variance, quantiles", "Sampling distributions and confidence intervals", "Hypothesis testing and p-value interpretation", "Common statistical pitfalls and responsible conclusions"],
     objectives: ["Choose useful descriptive statistics", "Explain expectation, variance, and sampling", "Interpret confidence intervals and hypothesis tests"],
     topics: ["Descriptive statistics", "Distributions", "Expectation", "Variance", "Sampling", "Confidence intervals", "Hypothesis testing"],
     mathematics: ["Mean, median, quantiles", "Variance and standard deviation", "Sampling distributions", "Confidence intervals and p-values"],
@@ -126,10 +148,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Complete a statistical analysis of a real dataset; report uncertainty, assumptions, and limitations.",
     assessment: ["Why is the median robust to outliers?", "What does a confidence interval describe?", "Does a small p-value measure effect size?"],
     build: "Statistical dataset analysis",
-    resources: [r("Khan Academy: Statistics & Probability", "https://www.khanacademy.org/math/statistics-probability", "Course"), r("OpenIntro Statistics", "https://www.openintro.org/book/os/", "Reference")]
+    resources: [r("Khan Academy: Statistics & Probability", "https://www.khanacademy.org/math/statistics-probability", "Course", undefined, true), r("OpenIntro Statistics", "https://www.openintro.org/book/os/", "Reference")]
   },
   {
     week: 7, phase: 2, title: "Python for Machine Learning", summary: "Build maintainable Python workflows for data and experiments.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; alternate coding and reading",
+    exactTopics: ["Python functions, modules, exceptions, and project structure", "NumPy arrays and vectorized operations", "Pandas DataFrames, cleaning, and basic EDA", "Reproducible experiment workflow and file organization"],
     objectives: ["Structure code using functions and modules", "Handle expected errors clearly", "Use NumPy and Pandas for data work", "Organise a small reproducible project"],
     topics: ["Functions", "Object-oriented programming", "Modules", "Exceptions", "NumPy", "Pandas", "Python project structure"],
     mathematics: ["Numerical precision", "Vectorised operations", "Algorithmic complexity basics"],
@@ -141,10 +166,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Create a reusable data-processing pipeline with a clear project structure and a short README.",
     assessment: ["Why split code into modules?", "When is vectorisation useful?", "How should a pipeline handle invalid input?"],
     build: "Data-processing pipeline",
-    resources: [r("Kaggle Learn: Python", "https://www.kaggle.com/learn/python", "Course"), r("NumPy Learn", "https://numpy.org/learn/", "Documentation"), r("Pandas getting started", "https://pandas.pydata.org/docs/getting_started/index.html", "Documentation")]
+    resources: [r("Kaggle Learn: Python", "https://www.kaggle.com/learn/python", "Course"), r("NumPy Learn", "https://numpy.org/learn/", "Documentation"), r("Pandas getting started", "https://pandas.pydata.org/docs/getting_started/index.html", "Documentation", undefined, true)]
   },
   {
     week: 8, phase: 2, title: "Data Processing and Exploration", summary: "Inspect data quality, uncover patterns, and prevent preprocessing mistakes.",
+    estimatedHours: 6,
+    dailyCommitment: "~45-60 min/day across 6-7 days",
+    exactTopics: ["Bias-variance tradeoff and overfitting/underfitting", "Train/validation/test splits and cross-validation", "L1/L2 regularization intuition", "Model evaluation workflow and leakage prevention"],
     objectives: ["Handle missing values and outliers thoughtfully", "Choose encodings and scaling methods", "Explore relationships without confusing correlation and causation"],
     topics: ["Data cleaning", "Missing values", "Outliers", "Encoding", "Feature scaling", "Correlation", "Data visualisation", "Exploratory Data Analysis"],
     mathematics: ["Standardisation and min-max scaling", "Correlation coefficients", "Robust summaries and distributions"],
@@ -160,6 +188,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 9, phase: 3, title: "Machine Learning Foundations", summary: "Frame a problem, establish a baseline, and understand the ML workflow.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; include one coding-focused block",
+    exactTopics: ["Linear regression assumptions and cost function (MSE)", "Ordinary least squares vs gradient descent fitting", "Metrics: MSE, RMSE, R\u00b2 and residual plots", "Feature interpretation and model limitations"],
     objectives: ["Distinguish supervised, unsupervised, and reinforcement learning", "Separate features, labels, and data splits", "Identify leakage and establish a baseline"],
     topics: ["Supervised learning", "Unsupervised learning", "Reinforcement learning overview", "Datasets", "Features and labels", "Training, validation and testing", "ML workflow"],
     mathematics: ["Empirical risk minimisation", "Generalisation", "Train/validation/test partitioning"],
@@ -175,6 +206,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 10, phase: 3, title: "Regression", summary: "Predict continuous outcomes and interpret the trade-offs in model fit.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; practice metrics on small examples",
+    exactTopics: ["Logistic regression, sigmoid, and decision boundary", "Classification metrics: accuracy, precision, recall, F1, ROC-AUC", "Threshold selection and confusion matrix reading", "Class imbalance basics and responsible evaluation"],
     objectives: ["Fit and interpret linear and polynomial regression", "Compare MAE and MSE", "Explain regularisation and its effect on coefficients"],
     topics: ["Linear regression", "Multiple regression", "Polynomial regression", "MSE", "MAE", "Gradient descent", "Ridge regression", "Lasso regression"],
     mathematics: ["Least squares objective", "Mean absolute and squared error", "L1 and L2 penalties"],
@@ -190,6 +224,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 11, phase: 3, title: "Classification", summary: "Predict categories, choose thresholds, and reason about the cost of errors.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; compare models hands-on",
+    exactTopics: ["Decision tree splits, impurity, and overfitting", "Random forests and ensemble intuition", "k-NN distance-based classification and scaling", "Hyperparameter tuning and model comparison"],
     objectives: ["Compare common classification algorithms", "Interpret predicted probabilities and decision boundaries", "Select metrics based on error costs"],
     topics: ["Logistic regression", "Decision trees", "Random forests", "K-nearest neighbours", "Support Vector Machines", "Naive Bayes"],
     mathematics: ["Sigmoid and log-odds", "Entropy and information gain", "Margins and distance", "Bayes decision rule"],
@@ -205,6 +242,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 12, phase: 3, title: "Unsupervised Learning", summary: "Find structure without labels and communicate what clusters do—and do not—mean.",
+    estimatedHours: 6,
+    dailyCommitment: "~45-60 min/day across 6-7 days",
+    exactTopics: ["k-means clustering, centroids, and inertia", "Choosing k and interpreting clusters", "Silhouette score and clustering evaluation", "When to use unsupervised vs supervised methods"],
     objectives: ["Compare K-Means, hierarchical clustering, and DBSCAN", "Use dimensionality reduction for exploration", "Evaluate clustering limitations"],
     topics: ["K-Means", "Hierarchical clustering", "DBSCAN", "Dimensionality reduction", "PCA applications"],
     mathematics: ["Euclidean distance", "Within-cluster sum of squares", "Linkage and density", "Silhouette intuition"],
@@ -220,6 +260,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 13, phase: 4, title: "Model Evaluation", summary: "Evaluate generalisation honestly, choose useful metrics, and avoid hidden leakage.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; keep math and code sessions separate",
+    exactTopics: ["Perceptron/MLP architecture, weights, biases, activations", "Forward pass, loss functions, and backpropagation intuition", "SGD/mini-batch gradient descent concepts", "Implementing and debugging a small neural network from scratch"],
     objectives: ["Interpret confusion matrices and threshold-dependent metrics", "Use cross-validation appropriately", "Diagnose bias, variance, and leakage"],
     topics: ["Confusion matrix", "Precision", "Recall", "F1 score", "ROC-AUC", "Cross-validation", "Bias and variance", "Data leakage"],
     mathematics: ["Precision-recall trade-off", "F1 harmonic mean", "ROC curve and AUC", "Validation error estimation"],
@@ -235,6 +278,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 14, phase: 4, title: "Neural Network Foundations", summary: "Build an intuitive picture of layers, weights, biases, and nonlinear activation.",
+    estimatedHours: 8,
+    dailyCommitment: "~1-1.5 hr/day across 6 days, or 1 hr/day across 7 days plus setup time",
+    exactTopics: ["PyTorch tensors, shapes, devices, and autograd", "nn.Module, loss functions, and optimizers", "Training loop: forward, loss, backward, step", "Dataset/DataLoader, batching, and training debugging"],
     objectives: ["Describe a perceptron and multilayer network", "Explain why activation functions matter", "Implement a small forward pass with NumPy"],
     topics: ["Perceptrons", "Neurons", "Weights", "Biases", "Activation functions", "Multilayer perceptrons"],
     mathematics: ["Affine transformation z = Wx + b", "Nonlinear activations", "Layer composition"],
@@ -250,6 +296,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 15, phase: 4, title: "Neural Network Training", summary: "Follow the computational graph to understand backpropagation and optimisation.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; include model training time",
+    exactTopics: ["CNN concepts: convolution, padding, stride, pooling", "Feature maps, receptive fields, and parameter sharing", "Image classification training/evaluation workflow", "Overfitting control: augmentation, dropout, early stopping basics"],
     objectives: ["Trace forward and backward propagation", "Derive gradients for a small network", "Compare SGD and Adam conceptually"],
     topics: ["Forward propagation", "Backpropagation", "Computational graphs", "Loss functions", "Stochastic Gradient Descent", "Adam optimiser"],
     mathematics: ["Chain rule through a graph", "Gradient of common losses", "Mini-batch gradients", "Adaptive learning-rate intuition"],
@@ -265,6 +314,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 16, phase: 4, title: "PyTorch", summary: "Use tensors, autograd, data loaders, and training loops to build a complete model.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days",
+    exactTopics: ["Text preprocessing and tokenization", "Embeddings and sequence representations", "RNN/LSTM/GRU intuition, strengths, and limits", "Basic NLP classification/evaluation pipeline"],
     objectives: ["Work with tensor shapes and devices", "Use autograd safely", "Build a reproducible training and evaluation loop"],
     topics: ["Tensors", "Autograd", "Datasets", "DataLoaders", "Training loops", "Model evaluation"],
     mathematics: ["Tensor operations", "Gradient accumulation", "Batch loss and optimisation"],
@@ -280,6 +332,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 17, phase: 5, title: "Computer Vision", summary: "Understand image tensors and how convolutional networks use local structure.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; include paper reading time",
+    exactTopics: ["Self-attention and multi-head attention intuition", "Transformer block components: attention, FFN, residuals, normalization", "Pretraining vs fine-tuning and transfer learning", "Using pretrained transformer models responsibly"],
     objectives: ["Represent images as tensors", "Explain convolution and pooling", "Train and evaluate a small image classifier"],
     topics: ["Image representation", "Convolution", "Filters and kernels", "Pooling", "CNN architecture", "Image classification"],
     mathematics: ["Discrete convolution", "Receptive fields", "Channels, stride, padding"],
@@ -295,6 +350,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 18, phase: 5, title: "Natural Language Processing", summary: "Transform text into useful representations and build a transparent text classifier.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; build a small RAG demo",
+    exactTopics: ["Prompting basics and evaluation of LLM outputs", "Embeddings, chunking, and retrieval for RAG", "Vector database search concepts", "Grounding, hallucinations, citations, and safety checks"],
     objectives: ["Compare tokenisation approaches", "Build bag-of-words and TF-IDF features", "Explain what static embeddings capture and miss"],
     topics: ["Text preprocessing", "Tokenisation", "N-grams", "Bag of Words", "TF-IDF", "Word2Vec", "Text classification"],
     mathematics: ["Term frequency and inverse document frequency", "Cosine similarity", "Sparse vector representations"],
@@ -310,6 +368,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 19, phase: 5, title: "Sequence Models", summary: "Model ordered data and understand the limitations of recurrent networks.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; focus on evaluation practice",
+    exactTopics: ["Evaluation metrics beyond accuracy for task fit", "Error analysis with confusion matrix and examples", "Experiment tracking and reproducible runs", "Baselines, ablations, and honest comparison"],
     objectives: ["Explain hidden state in an RNN", "Compare RNN, LSTM, and GRU", "Recognise vanishing-gradient challenges"],
     topics: ["Sequence modelling", "RNN", "LSTM", "GRU", "Vanishing gradients", "Sequence prediction"],
     mathematics: ["Recurrence relations", "Backpropagation through time", "Gated updates intuition"],
@@ -325,6 +386,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 20, phase: 5, title: "Transformers", summary: "Unpack attention and the components that make transformer architectures effective.",
+    estimatedHours: 7,
+    dailyCommitment: "~1 hr/day across 7 days; split design and implementation",
+    exactTopics: ["ML system components: data, model, API, monitoring", "Batch vs real-time inference tradeoffs", "API contract, validation, and error handling", "Observability, logging, and failure fallback plan"],
     objectives: ["Explain Query, Key, and Value projections", "Compute scaled dot-product attention", "Describe positional information and encoder/decoder roles"],
     topics: ["Transformer architecture", "Query, Key and Value", "Self-attention", "Multi-head attention", "Positional encoding", "Encoders and decoders"],
     mathematics: ["Scaled dot-product attention softmax(QKᵀ/√dₖ)V", "Positional encodings", "Attention masks"],
@@ -341,6 +405,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 21, phase: 6, title: "Large Language Models", summary: "Understand next-token prediction, model adaptation, prompting, and inference trade-offs.",
+    estimatedHours: 6,
+    dailyCommitment: "~45-60 min/day across 6-7 days",
+    exactTopics: ["Responsible AI: bias, fairness, privacy, and safety", "Model cards, documentation, and limitations", "Data governance and consent basics", "Human oversight and safe-use boundaries"],
     objectives: ["Explain pretraining and next-token prediction", "Distinguish fine-tuning from prompting", "Design a small, reproducible open-model experiment"],
     topics: ["Next-token prediction", "Pretraining", "Fine-tuning", "Prompting", "Inference", "Open-source LLMs"],
     mathematics: ["Autoregressive factorisation", "Cross-entropy objective", "Sampling temperature and probability distributions"],
@@ -356,6 +423,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 22, phase: 6, title: "Embeddings and RAG", summary: "Build a retrieval pipeline that grounds answers in a document collection.",
+    estimatedHours: 8,
+    dailyCommitment: "~1-1.5 hr/day across 6 days, or flexible 7-day split",
+    exactTopics: ["Project scoping, problem statement, and success metrics", "Dataset selection, cleaning, and EDA", "Baseline model, iteration, and evaluation", "Documentation, demo, and presentation planning"],
     objectives: ["Explain embedding spaces and semantic search", "Choose chunking and retrieval strategies", "Evaluate retrieval separately from generation"],
     topics: ["Embeddings", "Vector databases", "Semantic search", "Chunking", "Retrieval-Augmented Generation"],
     mathematics: ["Cosine similarity", "Nearest-neighbour retrieval", "Precision@k and recall@k"],
@@ -371,6 +441,9 @@ export const curriculum: CurriculumWeek[] = [
   },
   {
     week: 23, phase: 6, title: "AI Engineering and Deployment", summary: "Deliver an AI feature with reliable interfaces, monitoring, and responsible safeguards.",
+    estimatedHours: 8,
+    dailyCommitment: "~1-1.5 hr/day across 6 days; include deployment/testing",
+    exactTopics: ["Serving model predictions via API (FastAPI/Flask concepts)", "Dockerizing and running the app locally", "Health checks, logging, and monitoring plan", "Responsible deployment, input validation, and fallbacks"],
     objectives: ["Serve a model behind a documented API", "Package an application with Docker", "Plan evaluation, monitoring, and responsible use"],
     topics: ["APIs", "Model serving", "Deployment", "Docker", "Monitoring", "Evaluation", "Responsible AI"],
     mathematics: ["Latency and throughput", "Operational thresholds", "Monitoring distribution shift"],
@@ -382,10 +455,13 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Deploy or locally demonstrate an AI application with tests, evaluation, monitoring plan, and responsible-AI documentation.",
     assessment: ["Why validate API inputs?", "What is model drift?", "What should a service do when inference is unavailable?"],
     build: "Deploy an AI application",
-    resources: [r("Docker Get Started", "https://docs.docker.com/get-started/", "Documentation"), r("Google ML Crash Course", "https://developers.google.com/machine-learning/crash-course", "Course"), r("Qdrant documentation", "https://qdrant.tech/documentation/", "Documentation")]
+    resources: [r("Docker Get Started", "https://docs.docker.com/get-started/", "Documentation", undefined, true), r("Google ML Crash Course", "https://developers.google.com/machine-learning/crash-course", "Course", undefined, true), r("Qdrant documentation", "https://qdrant.tech/documentation/", "Documentation")]
   },
   {
     week: 24, phase: 6, title: "Research and Capstone", summary: "Reproduce, evaluate, and communicate a complete project with evidence and reflection.",
+    estimatedHours: 10,
+    dailyCommitment: "~1.5 hr/day across 7 days, or 2 hr/day in focused blocks",
+    exactTopics: ["Research question, scope, and reproducible baseline", "Controlled experiments and clear metric reporting", "Error analysis, limitations, and ethical considerations", "Final capstone report, demo, and presentation"],
     objectives: ["Form a focused research question", "Reproduce a baseline and document deviations", "Communicate results, limits, and ethical considerations"],
     topics: ["Research methodology", "Paper reproduction", "Benchmarking", "Model comparison", "Technical documentation", "Presentation"],
     mathematics: ["Metric selection", "Uncertainty and repeated runs", "Ablation and controlled comparisons"],
@@ -397,7 +473,7 @@ export const curriculum: CurriculumWeek[] = [
     assignment: "Submit the capstone: problem definition, literature review, dataset and EDA, mathematical justification, implementation, experiments, evaluation, error analysis, limitations, ethics, demo, documentation, and presentation.",
     assessment: ["What makes a reproduction useful when results differ?", "Why report limitations?", "How can a benchmark encourage misleading optimisation?"],
     build: "Final capstone project and research report",
-    resources: [r("Papers With Code", "https://paperswithcode.com/", "Reference"), r("Machine Learning GitHub topic", "https://github.com/topics/machine-learning", "Repository"), r("Deep Learning GitHub topic", "https://github.com/topics/deep-learning", "Repository"), r("PyTorch Examples", "https://github.com/pytorch/examples", "Repository"), r("Karpathy micrograd", "https://github.com/karpathy/micrograd", "Repository"), r("Karpathy nanoGPT", "https://github.com/karpathy/nanoGPT", "Repository")]
+    resources: [r("Papers With Code", "https://paperswithcode.com/", "Reference", undefined, true), r("Machine Learning GitHub topic", "https://github.com/topics/machine-learning", "Repository"), r("Deep Learning GitHub topic", "https://github.com/topics/deep-learning", "Repository"), r("PyTorch Examples", "https://github.com/pytorch/examples", "Repository"), r("Karpathy micrograd", "https://github.com/karpathy/micrograd", "Repository"), r("Karpathy nanoGPT", "https://github.com/karpathy/nanoGPT", "Repository")]
   }
 ];
 
