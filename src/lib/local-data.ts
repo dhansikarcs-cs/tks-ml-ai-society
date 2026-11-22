@@ -15,6 +15,9 @@ export type StudySession = {
   endedAt: string;
   seconds: number;
   category: "lesson" | "reading" | "coding" | "research";
+  reflection?: string;
+  humanConfirmed?: boolean;
+  breaksTaken?: number;
 };
 
 export type Project = {

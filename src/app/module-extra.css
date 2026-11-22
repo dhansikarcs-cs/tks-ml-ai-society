@@ -428,6 +428,28 @@
 .timer-btn { min-height: 32px; }
 .timer-icon-btn { width: 32px; height: 32px; }
 .timer-saved-msg { color: #8fc79a; font-size: 12px; }
+.timer-status-dot.break { background: #6bb7ff; box-shadow: 0 0 0 4px #6bb7ff22; }
+.activity-timer-fab.is-break { border-color: #5b93d6; background: #1e2a3a; color: #d8ebff; }
+.timer-break-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #23283a; color: #dce8ff; font-size: 12px; }
+.timer-break-suggest svg { color: #8fc1ff; flex: 0 0 auto; }
+.timer-break-suggest span { flex: 1; min-width: 180px; }
+.timer-reflection { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px; background: #20222b; border: 1px solid #34384a; }
+.timer-reflection strong { font-size: 13px; color: #f0eff4; }
+.timer-reflection textarea { width: 100%; min-height: 72px; padding: 8px 10px; border-radius: 8px; border: 1px solid #3a3548; background: #16171c; color: #eceaf2; font: inherit; font-size: 13px; resize: vertical; }
+.timer-reflection textarea:focus { outline: 2px solid #6a5b90; outline-offset: 1px; }
+.timer-human-check { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: #cfcdd8; line-height: 1.4; }
+.timer-human-check input { margin-top: 2px; }
+.timer-reflection-error { color: #ff9b9b; font-size: 12px; margin: 0; }
+[data-theme="light"] .timer-break-suggest { background: #eef4ff; color: #294264; }
+[data-theme="light"] .timer-break-suggest svg { color: #3b6fb6; }
+[data-theme="light"] .timer-reflection { background: #f7f6ff; border-color: #ddd9eb; }
+[data-theme="light"] .timer-reflection strong { color: #211f2b; }
+[data-theme="light"] .timer-reflection textarea { background: #fff; border-color: #ddd9eb; color: #2c2838; }
+[data-theme="light"] .timer-human-check { color: #4a4658; }
+[data-theme="light"] .timer-reflection-error { color: #c0392b; }
+[data-theme="light"] .activity-timer-fab.is-break { border-color: #9dc0f0; background: #edf5ff; color: #264a78; }
+[data-theme="light"] .timer-status-dot.break { background: #3b82d6; box-shadow: 0 0 0 4px #3b82d622; }
+
 .timer-category-label { display: inline-flex; align-items: center; }
 .timer-category-select { min-height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid #3a3548; background: #23222a; color: #e4e2ec; font: inherit; font-size: 12px; cursor: pointer; }
 .timer-category-select:focus { outline: 2px solid #6a5b90; outline-offset: 1px; }
